@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Chat</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <script src='chat.js' type="module"></script>
+  <style>
+    * { box-sizing: border-box }
+    h1 { text-align: center }
+    body {
+      display: flex;
+      flex-direction: column;
+      height: calc(100dvh - 3rem);
+      justify-content: space-between;
+    }
+    #chat {
+      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+    }
+    #message { width: 100% }
+    p { margin: 0 }
+    time::before { content: '[' }
+    time::after { content: ']' }
+    the-user { font-weight: bold }
+    the-user::after { content: ': ' }
+  </style>
+</head>
+<body>
+  <h1>Chat</h1>
+  <div id="chat"></div>
+  <form name="chatForm" id="chat-form">
+    <input id='message' type='text'>
+  </form>
+</body>
+</html>
