@@ -1,6 +1,6 @@
 import WSClient from "../../websocket/WSClient.js";
 
-export const ws = new WSClient('ws://localhost:8887');
+const ws = new WSClient('ws://localhost:8887');
 
 ws.on('close', () => console.log('Connection closed'));
 
