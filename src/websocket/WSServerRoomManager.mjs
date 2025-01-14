@@ -3,12 +3,13 @@ import WSServerError from "./WSServerError.mjs";
 import WSServerRoom from "./WSServerRoom.mjs";
 
 import crypto from 'crypto';
+import { Socket } from "dgram";
 
 export default class WSServerRoomManager extends WSServerPubSub {
   rooms = new Map();
   prefix = '__room-';
   actionsRoom = ['pub-room'];
-  syncModes = ['immediate', 'immediate-other', 'patch'];
+  syncModes = ['immediate', 'immediate-other'];
 
   constructor({
     maxPlayersByRoom = 10,
@@ -110,10 +111,6 @@ export default class WSServerRoomManager extends WSServerPubSub {
       if (this.syncMode === 'immediate-other') {
         return this.broadcastOtherRoom(room, msg, client);
       }
-      if (this.syncMode === 'patch') {
-        this.log('TODO: patch world state');
-        return true;
-      }
     }
     return false;
   }
@@ -166,7 +163,6 @@ export default class WSServerRoomManager extends WSServerPubSub {
     } catch (e) {
       this.log(e.name + ': ' + e.message);
     }
-
     return { name: room.name, meta: roomMeta };
   }
 
@@ -179,7 +175,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       data.name = null;
     }
 
-    const roomInstance = new this.roomClass(this);
+    const roomInstance = new this.roomClass(data.name, this);
     try {
       var meta = roomInstance.onCreate(data.name, data.msg, clientMeta, client);
     } catch (e) {
@@ -195,6 +191,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     const roomName = this.createRoom(data.name ?? null);
     const room = this.rooms.get(roomName);
     room.manager = roomInstance;
+    room.manager.name = roomName;
     Object.assign(room.meta, meta);
 
     if (this.autoJoinCreatedRoom) {
@@ -227,6 +224,22 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     this.pubRoomList();
     return { name: roomName, meta: roomMeta };
+  }
+
+  getClientsOfRoom(roomName) {
+    const clients = [];
+    if (!this.rooms.has(roomName)) return clients;
+
+    const room = this.rooms.get(roomName);
+    for (const client of room.chan.clients) {
+      clients.push(this.clients.get(client));
+    }
+    return clients;
+  }
+
+  getRoomMeta(roomName) {
+    if (!this.rooms.has(roomName)) return false;
+    return this.rooms.get(roomName).meta;
   }
 
   addClientToRoom(roomName, clientMeta, client) {
@@ -284,11 +297,14 @@ export default class WSServerRoomManager extends WSServerPubSub {
     if (this.rooms.has(roomName)) return false;
 
     let meta = {};
-    let managerInstance = new this.roomClass(this);
+    let managerInstance = new this.roomClass(roomName, this);
     if (withHook) {
       try {
-        meta = managerInstance.onCreate(roomName, null, null, null, this);
-      } catch (e) { meta = false; }
+        meta = managerInstance.onCreate(roomName, null, null, null);
+      } catch (e) {
+        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+        meta = false;
+      }
       if (meta === false) {
         this.log('Room creation aborted');
         return false;
@@ -331,6 +347,15 @@ export default class WSServerRoomManager extends WSServerPubSub {
   }
 
   prepareBroadcastMessage(room, client, msg) {
+    if (client === null) {
+      return JSON.stringify({
+        action: 'pub',
+        chan: this.prefix + room.name,
+        msg: {
+          data: msg,
+        },
+      });
+    }
     let clientMeta = {};
     try {
       clientMeta = room.manager.onSendClient(this.clients.get(client));
@@ -387,7 +412,13 @@ export default class WSServerRoomManager extends WSServerPubSub {
     return this.pub(this.prefix + room.name + '-clients', clients);
   }
 
-  broadcastRoom(room, msg, client) {
+  broadcastRoomName(roomName, msg, client = null) {
+    if (!this.rooms.has(roomName)) return false;
+    const room = this.rooms.get(roomName);
+    return this.broadcastRoom(room, msg, client);
+  }
+
+  broadcastRoom(room, msg, client = null) {
     const message = this.prepareBroadcastMessage(room, client, msg);
     for (const other of room.chan.clients) {
       this.send(other, message);

@@ -152,6 +152,13 @@ export default class WSServer {
     this.broadcast(message);
   }
 
+  getClientSocket(id) {
+    for (const [client, metadata] of this.clients.entries()) {
+      if (metadata.id === id) return client;
+    }
+    return null;
+  }
+
   broadcast(message) {
     for (const client of this.clients.keys()) {
       if (client.readyState === WebSocket.OPEN) {

@@ -28,9 +28,13 @@ export default class WSClientRoom extends WSClient {
   }
 
   roomLeave(name, timeout = this.defaultTimeout) {
+    this._roomOff(name);
+    return this.rpc(this.prefix + 'leave', { name }, timeout);
+  }
+
+  _roomOff(name) {
     this.clear(`ws:chan:${this.prefix + name}`);
     this.clear(`ws:chan:${this.prefix + name}-clients`);
-    return this.rpc(this.prefix + 'leave', { name }, timeout);
   }
 
   roomSend(name, data = {}) {
@@ -56,6 +60,7 @@ class Room {
   constructor(name, meta, wsClient) {
     this.name = name;
     this.wsClient = wsClient;
+    this.wsClient.on('close', () => this.wsClient._roomOff(this.name));
     this.meta = meta;
     this.clients = [];
   }
