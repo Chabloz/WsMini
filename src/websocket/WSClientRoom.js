@@ -46,6 +46,7 @@ export default class WSClientRoom extends WSClient {
   }
 
   roomOnRooms(callback) {
+    this.rpc(this.prefix + 'list').then(callback);
     return this.sub(this.prefix + 'list', callback);
   }
 

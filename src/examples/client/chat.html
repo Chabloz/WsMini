@@ -7,12 +7,18 @@
   <script src='chat.js' type="module"></script>
   <style>
     * { box-sizing: border-box }
-    h1 { text-align: center }
     body {
       display: flex;
       flex-direction: column;
       height: calc(100dvh - 3rem);
       justify-content: space-between;
+      background-color: #333;
+      color: #fff;
+      font-family: sans-serif;
+    }
+    h1 {
+      text-align: center;
+      text-transform: uppercase;
     }
     #chat {
       overflow-y: auto;
@@ -23,8 +29,14 @@
     p { margin: 0 }
     time::before { content: '[' }
     time::after { content: ']' }
-    the-user { font-weight: bold }
+    the-user, time { font-weight: bold }
     the-user::after { content: ': ' }
+    input {
+      background-color: #555;
+      color: #fff;
+      border: none;
+      padding: 0.5rem;
+    }
   </style>
 </head>
 <body>

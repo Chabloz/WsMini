@@ -3,7 +3,6 @@ import WSServerError from "./WSServerError.mjs";
 import WSServerRoom from "./WSServerRoom.mjs";
 
 import crypto from 'crypto';
-import { Socket } from "dgram";
 
 export default class WSServerRoomManager extends WSServerPubSub {
   rooms = new Map();
@@ -28,7 +27,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     port = 8887,
     maxNbOfClients = 1000,
-    maxInputSize = 1000000,
+    maxInputSize = 100000, // 100kb
     verbose = true,
     origins = 'http://localhost:5173',
     pingTimeout = 30000,
@@ -72,6 +71,11 @@ export default class WSServerRoomManager extends WSServerPubSub {
       usersCanPub: false,
       usersCanSub: this.usersCanListRooms,
     });
+
+    if (this.usersCanListRooms) {
+      this.clientListRooms = this.clientListRooms.bind(this);
+      this.addRpc(this.prefix + 'list', this.clientListRooms);
+    }
   }
 
   isActionValid(action) {
@@ -98,7 +102,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
       const clientMeta = this.clients.get(client);
       try {
-        var msg = room.manager.onMsg(data.msg, room.meta, clientMeta, client);
+        var msg = room.manager.onMsg(data.msg, clientMeta, client);
       } catch (e) {
         if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
         const response = e instanceof WSServerError ? e.message : 'Server error';
@@ -113,6 +117,10 @@ export default class WSServerRoomManager extends WSServerPubSub {
       }
     }
     return false;
+  }
+
+  clientListRooms(data, clientMeta, client) {
+    return this.prepareRoomList();
   }
 
   clientLeaveRoom(data, clientMeta, client) {
@@ -142,7 +150,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     if (room.chan.clients.has(client)) throw new WSServerError('Client already in room');
 
     try {
-      var meta = room.manager.onJoin(data.msg, room.meta, clientMeta, client);
+      var meta = room.manager.onJoin(data.msg, clientMeta, client);
     } catch (e) {
       if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
       const response = e instanceof WSServerError ? e.message : 'Server error';
@@ -158,7 +166,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     let roomMeta = {};
     try {
-      roomMeta = room.manager.onSendRoom(room.meta);
+      roomMeta = room.manager.onSendRoom();
       if (typeof roomMeta !== 'object') roomMeta = {};
     } catch (e) {
       this.log(e.name + ': ' + e.message);
@@ -196,7 +204,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     if (this.autoJoinCreatedRoom) {
       try {
-        var metaUser = room.manager.onJoin(data.msg, room.meta, clientMeta, client);
+        var metaUser = room.manager.onJoin(data.msg, clientMeta, client);
       } catch (e) {
         if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
         const response = e instanceof WSServerError ? e.message : 'Server error';
@@ -264,7 +272,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     const clientMeta = this.clients.get(client);
     try {
-      room.manager.onLeave(room.meta, clientMeta, client);
+      room.manager.onLeave(clientMeta, client);
     } catch (e) {
       this.log(e.name + ': ' + e.message);
     }
@@ -282,7 +290,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     const room = this.rooms.get(roomName);
 
     try {
-      room.manager.onDispose(room.meta);
+      room.manager.onDispose();
     } catch (e) { this.log(e.name + ': ' + e.message); }
 
     this.log('Room deleted: ' + roomName);
@@ -374,28 +382,33 @@ export default class WSServerRoomManager extends WSServerPubSub {
     });
   }
 
-  pubRoomList() {
-    let roomsList = [];
+  prepareRoomList() {
+    let rooms = [];
     for (const room of this.rooms.values()) {
-      let roomMeta = {};
+      let meta = {};
       try {
-        roomMeta = room.manager.onSendRoom(room.meta);
-        if (typeof roomMeta !== 'object') roomMeta = {};
+        meta = room.manager.onSendRoom(room.meta);
+        if (typeof meta !== 'object') meta = {};
       } catch (e) { this.log(e.name + ': ' + e.message); }
 
-      roomsList.push({
+      rooms.push({
         name: room.name,
-        meta: roomMeta,
+        meta,
         nbPlayers: room.chan.clients.size,
         maxPlayers: room.maxPlayers
       });
     }
 
     try {
-      const roomsListHook = this.roomClass.onSendRoomsList(roomsList);
-      if (Array.isArray(roomsListHook)) roomsList = roomsListHook;
+      const roomsListHook = this.roomClass.onSendRoomsList(rooms);
+      if (Array.isArray(roomsListHook)) rooms = roomsListHook;
     } catch (e) { this.log(e.name + ': ' + e.message); }
 
+    return rooms;
+  }
+
+  pubRoomList() {
+    const roomsList = this.prepareRoomList();
     this.pub(this.prefix + 'list', roomsList);
   }
 

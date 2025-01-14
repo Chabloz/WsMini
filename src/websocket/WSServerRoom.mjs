@@ -17,19 +17,19 @@ export default class WSServerRoom {
       return {};
     }
 
-    onJoin(msg, roomMeta, clientMeta, client) {
+    onJoin(msg, clientMeta, client) {
       return {};
     }
 
-    onLeave(roomMeta, clientMeta, client) {
+    onLeave(clientMeta, client) {
 
     }
 
-    onDispose(roomMeta) {
+    onDispose() {
 
     }
 
-    onMsg(msg, roomMeta, clientMeta, client) {
+    onMsg(msg, clientMeta, client) {
       return msg;
     }
 
@@ -37,8 +37,8 @@ export default class WSServerRoom {
       return clientMeta;
     }
 
-    onSendRoom(roomMeta) {
-      return roomMeta;
+    onSendRoom() {
+      return this.meta;
     }
 
     broadcast(msg, client = null) {
