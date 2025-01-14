@@ -325,6 +325,11 @@ export default class WSServerRoomManager extends WSServerPubSub {
     super.onClose(client);
   }
 
+  close() {
+    this.rooms.clear();
+    super.close();
+  }
+
   prepareBroadcastMessage(room, client, msg) {
     let clientMeta = {};
     try {

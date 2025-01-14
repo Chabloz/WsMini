@@ -264,6 +264,12 @@ export default class WSServerPubSub extends WSServer {
     super.onClose(client);
   }
 
+  close() {
+    this.channels.clear();
+    this.rpcs.clear();
+    super.close();
+  }
+
   sendError(client, msg) {
     this.sendJson(client, {action: 'error', msg});
     return false;
