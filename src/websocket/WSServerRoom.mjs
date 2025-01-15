@@ -52,8 +52,8 @@ export default class WSServerRoom {
       return this.meta;
     }
 
-    broadcast(msg, client = null) {
-      this.wsServer.broadcastRoomName(this.name, msg, client);
+    broadcast(msg) {
+      this.wsServer.broadcastRoomName(this.name, msg);
     }
 
     static onSendRoomsList(rooms) {

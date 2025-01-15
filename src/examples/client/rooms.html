@@ -2,19 +2,21 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Chat</title>
+  <title>Rooms</title>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <script src='rooms.js' type="module"></script>
   <style>
-    * { box-sizing: border-box }
-    body {
+    * {
+      box-sizing: border-box;
+      font-family: Consolas, 'Courier New', Courier, monospace;
+    }
+    body, the-lobby, the-room {
       display: flex;
       flex-direction: column;
       height: calc(100dvh - 3rem);
       justify-content: space-between;
       background-color: #333;
       color: #fff;
-      font-family: sans-serif;
     }
     h1 {
       text-align: center;
@@ -27,10 +29,9 @@
     }
     #message { width: 100% }
     p { margin: 0 }
-    time::before { content: '[' }
-    time::after { content: ']' }
-    the-user, time { font-weight: bold }
-    the-user::after { content: ': ' }
+    #users { margin: 0.5rem 0 }
+    a-user::before { content: '[' }
+    a-user::after { content: ']' }
     input {
       background-color: #555;
       color: #fff;
@@ -42,7 +43,11 @@
       color: #fff;
       border: none;
       padding: 0.5rem;
+      margin: 0.5rem 0;
       cursor: pointer;
+    }
+    #leave {
+      background-color: #dc3545;
     }
     the-listing {
       padding: 0.5rem;
@@ -59,27 +64,45 @@
       padding: 0.5rem;
       text-align: left;
     }
+    .hidden { display: none }
   </style>
 </head>
 <body>
-  <h1>Rooms</h1>
-  <form id="room-form">
-    <input id="name" type="text">
-    <button>Create a room</button>
-    <error-message></error-message>
-  </form>
-  <the-listing>
-    <table id="room-listing">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Players</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-  </the-listing>
+  <the-lobby>
+    <h1>Rooms</h1>
+    <form id="room-form">
+      <input id="name" type="text">
+      <button>Create a room</button>
+      <error-message></error-message>
+    </form>
+    <the-listing>
+      <table id="room-listing">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Users</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </the-listing>
+  </the-lobby>
+  <the-room class="hidden">
+    <h1 id="room-name"></h1>
+    <div id="chat"></div>
+    <div id="users">
+      In the room:
+      <the-users-list></the-users-list>
+    </div>
+    <form id="chat-form">
+      <input id="message" type="text">
+      <button>Send</button>
+    </form>
+    <div>
+      <button id="leave">Exit</button>
+    </div>
+  </the-room>
 </body>
 </html>

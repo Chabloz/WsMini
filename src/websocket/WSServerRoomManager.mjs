@@ -11,18 +11,18 @@ export default class WSServerRoomManager extends WSServerPubSub {
   syncModes = ['immediate', 'immediate-other'];
 
   constructor({
-    maxPlayersByRoom = 10,
+    maxUsersByRoom = 10,
 
     usersCanCreateRoom = true,
     usersCanNameRoom = true,
     usersCanListRooms = true,
-    usersCanGetRoomPlayers = true,
+    usersCanGetRoomUsers = true,
 
     roomClass = WSServerRoom,
 
     autoJoinCreatedRoom = true,
     autoDeleteEmptyRoom = true,
-    autoSendRoomListOnPlayersChange = true,
+    autoSendRoomListOnUsersChange = true,
 
     syncMode = null,
 
@@ -38,18 +38,18 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     super({ port, maxNbOfClients, maxInputSize, verbose, origins, pingTimeout, authCallback });
 
-    this.maxPlayersByRoom = maxPlayersByRoom;
+    this.maxUsersByRoom = maxUsersByRoom;
 
     this.usersCanCreateRoom = usersCanCreateRoom;
     this.usersCanNameRoom = usersCanNameRoom;
     this.usersCanListRooms = usersCanListRooms;
-    this.usersCanGetRoomPlayers = usersCanGetRoomPlayers;
+    this.usersCanGetRoomUsers = usersCanGetRoomUsers;
 
     this.roomClass = roomClass;
 
     this.autoJoinCreatedRoom = autoJoinCreatedRoom;
     this.autoDeleteEmptyRoom = autoDeleteEmptyRoom;
-    this.autoSendRoomListOnPlayersChange = autoSendRoomListOnPlayersChange;
+    this.autoSendRoomListOnUsersChange = autoSendRoomListOnUsersChange;
 
     if (syncMode === null) syncMode = this.syncModes[0];
     if (!this.syncModes.includes(syncMode)) throw new Error('Invalid sync mode');
@@ -112,7 +112,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       }
 
       if (this.syncMode === 'immediate') {
-        return this.broadcastRoom(room, msg, client);
+        return this.broadcastRoom(room, msg);
       }
       if (this.syncMode === 'immediate-other') {
         return this.broadcastOtherRoom(room, msg, client);
@@ -148,7 +148,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     data.name = data.name.trim();
     if (!this.rooms.has(data.name)) throw new WSServerError('Room not found');
     const room = this.rooms.get(data.name);
-    if (room.chan.clients.size >= room.maxPlayers) throw new WSServerError('Room is full');
+    if (room.chan.clients.size >= room.maxUsers) throw new WSServerError('Room is full');
     if (room.chan.clients.has(client)) throw new WSServerError('Client already in room');
 
     try {
@@ -173,7 +173,10 @@ export default class WSServerRoomManager extends WSServerPubSub {
     } catch (e) {
       this.log(e.name + ': ' + e.message);
     }
-    return { name: room.name, meta: roomMeta };
+    // queueMicrotask(() => this.pubRoomClients(room));
+    const response = { name: room.name, meta: roomMeta };
+    if (this.usersCanGetRoomUsers) response.clients = this.prepareRoomClients(room);
+    return response;
   }
 
   clientCreateRoom(data, clientMeta, client) {
@@ -222,6 +225,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
       Object.assign(clientMeta, meta);
       this.addClientToRoom(roomName, clientMeta, client);
+      // queueMicrotask(() => this.pubRoomClients(room));
     }
 
     let roomMeta = {};
@@ -233,7 +237,9 @@ export default class WSServerRoomManager extends WSServerPubSub {
     }
 
     this.pubRoomList();
-    return { name: roomName, meta: roomMeta };
+    const response = { name: roomName, meta: roomMeta };
+    if (this.usersCanGetRoomUsers) response.clients = this.prepareRoomClients(room);
+    return response;
   }
 
   getClientsOfRoom(roomName) {
@@ -250,7 +256,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
   isRoomFull(roomName) {
     if (!this.rooms.has(roomName)) return false;
     const room = this.rooms.get(roomName);
-    return room.chan.clients.size >= room.maxPlayers;
+    return room.chan.clients.size >= room.maxUsers;
   }
 
   getRoomMeta(roomName) {
@@ -266,9 +272,9 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     this.log('Client ' + clientMeta.id + ' joined room ' + roomName);
     chan.clients.add(client);
-    if (this.usersCanGetRoomPlayers) chanClients.clients.add(client);
+    if (this.usersCanGetRoomUsers) chanClients.clients.add(client);
     this.pubRoomClients(room);
-    if (this.autoSendRoomListOnPlayersChange) this.pubRoomList();
+    if (this.autoSendRoomListOnUsersChange) this.pubRoomList();
     return true;
   }
 
@@ -291,7 +297,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     chanClients.clients.delete(client);
     this.pubRoomClients(room);
     if (!this.autoDeleteEmptyRoom || chan.clients.size > 0) {
-      if (this.autoSendRoomListOnPlayersChange) this.pubRoomList();
+      if (this.autoSendRoomListOnUsersChange) this.pubRoomList();
       return true;
     }
     return this.deleteRoom(roomName);
@@ -342,7 +348,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       name: roomName,
       chan: this.channels.get(chanName),
       chanClients: this.channels.get(chanNameClients),
-      maxPlayers: this.maxPlayersByRoom,
+      maxUsers: this.maxUsersByRoom,
       meta: { name: roomName, ...meta },
       manager: managerInstance,
     });
@@ -366,31 +372,11 @@ export default class WSServerRoomManager extends WSServerPubSub {
     super.close();
   }
 
-  prepareBroadcastMessage(room, client, msg) {
-    if (client === null) {
-      return JSON.stringify({
-        action: 'pub',
-        chan: this.prefix + room.name,
-        msg: {
-          data: msg,
-        },
-      });
-    }
-    let clientMeta = {};
-    try {
-      clientMeta = room.manager.onSendClient(this.clients.get(client));
-      if (typeof clientMeta !== 'object') clientMeta = {};
-    } catch (e) {
-      this.log(e.name + ': ' + e.message);
-    }
-
+  prepareBroadcastMessage(room, msg) {
     return JSON.stringify({
       action: 'pub',
       chan: this.prefix + room.name,
-      msg: {
-        client: clientMeta,
-        data: msg,
-      },
+      msg
     });
   }
 
@@ -406,8 +392,8 @@ export default class WSServerRoomManager extends WSServerPubSub {
       rooms.push({
         name: room.name,
         meta,
-        nbPlayers: room.chan.clients.size,
-        maxPlayers: room.maxPlayers
+        nbUsers: room.chan.clients.size,
+        maxUsers: room.maxUsers
       });
     }
 
@@ -424,7 +410,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     this.pub(this.prefix + 'list', roomsList);
   }
 
-  pubRoomClients(room) {
+  prepareRoomClients(room) {
     const clients = [];
     for (const client of room.chan.clients) {
       let clientMeta = {};
@@ -434,17 +420,22 @@ export default class WSServerRoomManager extends WSServerPubSub {
       } catch (e) { this.log(e.name + ': ' + e.message); }
       clients.push(clientMeta);
     }
+    return clients;
+  }
+
+  pubRoomClients(room) {
+    const clients = this.prepareRoomClients(room);
     return this.pub(this.prefix + room.name + '-clients', clients);
   }
 
-  broadcastRoomName(roomName, msg, client = null) {
+  broadcastRoomName(roomName, msg) {
     if (!this.rooms.has(roomName)) return false;
     const room = this.rooms.get(roomName);
-    return this.broadcastRoom(room, msg, client);
+    return this.broadcastRoom(room, msg);
   }
 
-  broadcastRoom(room, msg, client = null) {
-    const message = this.prepareBroadcastMessage(room, client, msg);
+  broadcastRoom(room, msg) {
+    const message = this.prepareBroadcastMessage(room, msg);
     for (const other of room.chan.clients) {
       this.send(other, message);
     }
@@ -452,7 +443,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
   }
 
   broadcastOtherRoom(room, msg, client) {
-    const message = this.prepareBroadcastMessage(room, client, msg);
+    const message = this.prepareBroadcastMessage(room, msg);
     for (const other of room.chan.clients) {
       if (other === client) continue;
       this.send(other, message);

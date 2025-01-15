@@ -17,14 +17,14 @@ export default class WSClientRoom extends WSClient {
 
   _roomAction(action, name, data = {}, timeout = this.defaultTimeout) {
     const room = new Room(name, {}, this);
-    const off = this.roomOnClients(name, clients => room.clients = clients);
-
     return this.rpc(this.prefix + action, { name, msg: data }, timeout)
       .then(resp => {
         room.meta = resp.meta;
         room.name = resp.name;
+        if (resp?.clients) room.clients = resp.clients;
+        this.roomOnClients(room.name, clients => room.clients = clients);
         return room;
-      }).catch(e => { off(); throw e; });
+      })
   }
 
   roomLeave(name, timeout = this.defaultTimeout) {
@@ -79,6 +79,8 @@ class Room {
   }
 
   onClients(callback) {
+    console.log(this.name, this.clients);
+    callback(this.clients);
     return this.wsClient.roomOnClients(this.name, callback);
   }
 

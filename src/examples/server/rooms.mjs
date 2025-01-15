@@ -5,7 +5,7 @@ import WSServerRoom from '../../websocket/WSServerRoom.mjs';
 const wsServer = new WSServerRoomManager({
   port: 8889,
   origins: '*',
-  maxPlayersByRoom: 2, // Specifiy the maximum number of players by room
+  maxUsersByRoom: 10, // Specifiy the maximum number of clients by room
   /*
     Specify if users can create rooms
     If false, you should code your own room creation logic in the server side
@@ -22,9 +22,9 @@ const wsServer = new WSServerRoomManager({
   */
   usersCanListRooms: true,
   /*
-    Specify if users can get the list of players in a room
+    Specify if users can get the list of users in a room
   */
-  usersCanGetRoomPlayers: true,
+  usersCanGetRoomUsers: true,
 
   /*
     Specify if user creating a room should automatically join it
@@ -32,17 +32,17 @@ const wsServer = new WSServerRoomManager({
   autoJoinCreatedRoom: true,
 
   /*
-    Specify if empty rooms should be automatically deleted when the last player leaves
+    Specify if empty rooms should be automatically deleted when the last user leaves
     If false, you should code your own room deletion logic
   */
   autoDeleteEmptyRoom: true,
 
   /*
-    Specify if the room list should be automatically sent when the number of players in a room changes
+    Specify if the room list should be automatically sent when the number of users in a room changes
     usersCanListRooms must be true for this to work
     If false, you should code your own room list update to the clients
   */
-  autoSendRoomListOnPlayersChange: true,
+  autoSendRoomListOnUsersChange: true,
 
   /*
     You can provide a custom room class extending WSServerRoom to handle room events
@@ -67,7 +67,7 @@ const wsServer = new WSServerRoomManager({
 
       Dont forget to validate the ALL client data before using it
     */
-      onCreate(name, msg = null, clientMeta = null, client = null) {
+    onCreate(name, msg = null, clientMeta = null, client = null) {
       // Throw a WSServerError to reject the room creation (the client promise will then be rejected)
       if (name === 'bad-words') throw new WSServerError('Bad words are not allowed');
       // You can return an object that will be available in the room instance as this.meta
@@ -88,7 +88,7 @@ const wsServer = new WSServerRoomManager({
     */
     onJoin(msg, clientMeta, client) {
       // Throw a WSServerError to reject the client join (the client promise will then be rejected)
-      if (msg?.color !== 'black' && msg?.color !== 'white') throw new WSServerError('Invalid color');
+      // if (msg?.color !== 'black' && msg?.color !== 'white') throw new WSServerError('Invalid color');
       return { color: msg.color };
     }
 
@@ -101,17 +101,21 @@ const wsServer = new WSServerRoomManager({
     onMsg(msg, clientMeta, client) {
       // For example, you can invalidate an illegal move in a chess game
       // The test is just an example, you should implement your own game logic
-      isInvalid = !msg.move ||
-        !Number.isInteger(msg.move.col) ||
-        !Number.isInteger(msg.move.row) ||
-        msg.move.col < 0 || msg.move.col > 7 ||
-        msg.move.row < 0 || msg.move.row > 7;
-      if (isInvalid) throw new WSServerError('Invalid move');
+      // isInvalid = !msg.move ||
+      //   !Number.isInteger(msg.move.col) ||
+      //   !Number.isInteger(msg.move.row) ||
+      //   msg.move.col < 0 || msg.move.col > 7 ||
+      //   msg.move.row < 0 || msg.move.row > 7;
+      // if (isInvalid) throw new WSServerError('Invalid move');
 
       // You can modify the message sent by the client
       // For example, you can add a timestamp to the message
       // This object will be sent to all clients in the room
-      return msg;
+      return {
+        time: Date.now(),
+        user: 'Anon. ' + clientMeta.id.slice(0, 4),
+        msg,
+      };
     }
 
     /*
@@ -137,7 +141,9 @@ const wsServer = new WSServerRoomManager({
       This is useful if you want to hide some client data from the client side
     */
     onSendClient(clientMeta) {
-      return clientMeta;
+      return {
+        user: 'Anon. ' + clientMeta.id.slice(0, 4),
+      };
     }
 
     /*
