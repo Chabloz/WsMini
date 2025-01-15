@@ -89,7 +89,7 @@ const wsServer = new WSServerRoomManager({
     onJoin(msg, clientMeta, client) {
       // Throw a WSServerError to reject the client join (the client promise will then be rejected)
       // if (msg?.color !== 'black' && msg?.color !== 'white') throw new WSServerError('Invalid color');
-      return { color: msg.color };
+      return {};
     }
 
     /*
