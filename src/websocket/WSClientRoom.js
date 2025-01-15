@@ -79,7 +79,6 @@ class Room {
   }
 
   onClients(callback) {
-    console.log(this.name, this.clients);
     callback(this.clients);
     return this.wsClient.roomOnClients(this.name, callback);
   }
