@@ -1,5 +1,12 @@
+import WSServerRoomManager from "./WSServerRoomManager.mjs";
+
 export default class WSServerRoom {
 
+    /**
+     * @param {string} name
+     * @param {WSServerRoomManager} wsServer
+     *
+    */
     constructor(name, wsServer) {
       this.wsServer = wsServer;
       this.name = name;
@@ -11,6 +18,10 @@ export default class WSServerRoom {
 
     get meta() {
       return this.wsServer.getRoomMeta(this.name);
+    }
+
+    isFull() {
+      return this.wsServer.isRoomFull(this.name);
     }
 
     onCreate(name, msg = null, clientMeta = null, client = null) {

@@ -12,7 +12,8 @@ const wsServer = new WSServerRoomManager({
   */
   usersCanCreateRoom: true,
   /*
-    Specify if users can name rooms, if false, the server will generate an UUID for the room name
+    Specify if users can name rooms
+    If false, the server will generate an UUID for the room name
   */
   usersCanNameRoom: true,
   /*
@@ -22,7 +23,6 @@ const wsServer = new WSServerRoomManager({
   usersCanListRooms: true,
   /*
     Specify if users can get the list of players in a room
-    If false, you should code your own room joining logic
   */
   usersCanGetRoomPlayers: true,
 
@@ -36,6 +36,13 @@ const wsServer = new WSServerRoomManager({
     If false, you should code your own room deletion logic
   */
   autoDeleteEmptyRoom: true,
+
+  /*
+    Specify if the room list should be automatically sent when the number of players in a room changes
+    usersCanListRooms must be true for this to work
+    If false, you should code your own room list update to the clients
+  */
+  autoSendRoomListOnPlayersChange: true,
 
   /*
     You can provide a custom room class extending WSServerRoom to handle room events

@@ -6,6 +6,7 @@ await ws.connect();
 const createForm = document.querySelector('#room-form');
 const roomsDom = document.querySelector('#room-listing tbody');
 const nameInput = document.querySelector('#name');
+const errDom = document.querySelector('error-message');
 nameInput.focus();
 
 await ws.roomOnRooms(rooms => {
@@ -23,5 +24,8 @@ await ws.roomOnRooms(rooms => {
 
 createForm.addEventListener('submit', e => {
   e.preventDefault();
-  ws.roomCreate(nameInput.value, { color: 'black' });
+  ws.roomCreate(nameInput.value, { color: 'black' }).catch(err => {
+      errDom.textContent = err.message;
+      setTimeout(() => {errDom.textContent = ''}, 3000);
+  });
 });

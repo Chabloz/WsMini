@@ -22,6 +22,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     autoJoinCreatedRoom = true,
     autoDeleteEmptyRoom = true,
+    autoSendRoomListOnPlayersChange = true,
 
     syncMode = null,
 
@@ -48,6 +49,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     this.autoJoinCreatedRoom = autoJoinCreatedRoom;
     this.autoDeleteEmptyRoom = autoDeleteEmptyRoom;
+    this.autoSendRoomListOnPlayersChange = autoSendRoomListOnPlayersChange;
 
     if (syncMode === null) syncMode = this.syncModes[0];
     if (!this.syncModes.includes(syncMode)) throw new Error('Invalid sync mode');
@@ -245,6 +247,12 @@ export default class WSServerRoomManager extends WSServerPubSub {
     return clients;
   }
 
+  isRoomFull(roomName) {
+    if (!this.rooms.has(roomName)) return false;
+    const room = this.rooms.get(roomName);
+    return room.chan.clients.size >= room.maxPlayers;
+  }
+
   getRoomMeta(roomName) {
     if (!this.rooms.has(roomName)) return false;
     return this.rooms.get(roomName).meta;
@@ -260,6 +268,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     chan.clients.add(client);
     if (this.usersCanGetRoomPlayers) chanClients.clients.add(client);
     this.pubRoomClients(room);
+    if (this.autoSendRoomListOnPlayersChange) this.pubRoomList();
     return true;
   }
 
@@ -281,7 +290,10 @@ export default class WSServerRoomManager extends WSServerPubSub {
     chan.clients.delete(client);
     chanClients.clients.delete(client);
     this.pubRoomClients(room);
-    if (!this.autoDeleteEmptyRoom || chan.clients.size > 0) return true;
+    if (!this.autoDeleteEmptyRoom || chan.clients.size > 0) {
+      if (this.autoSendRoomListOnPlayersChange) this.pubRoomList();
+      return true;
+    }
     return this.deleteRoom(roomName);
   }
 
