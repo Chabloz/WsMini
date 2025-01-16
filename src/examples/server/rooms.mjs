@@ -7,42 +7,44 @@ const wsServer = new WSServerRoomManager({
   origins: '*',
   maxUsersByRoom: 10, // Specifiy the maximum number of clients by room
   /*
-    Specify if users can create rooms
+    Specify if users can create rooms (default is true)
     If false, you should code your own room creation logic in the server side
   */
-  usersCanCreateRoom: true,
+  // usersCanCreateRoom: true,
   /*
-    Specify if users can name rooms
+    Specify if users can name rooms (default is true)
     If false, the server will generate an UUID for the room name
   */
-  usersCanNameRoom: true,
+  // usersCanNameRoom: true,
   /*
-    Specify if users can list rooms
+    Specify if users can list rooms (default is true)
     If false, you should code your own room listing (or room joining) logic
   */
-  usersCanListRooms: true,
+  // usersCanListRooms: true,
   /*
-    Specify if users can get the list of users in a room
+    Specify if users can get the list of users in a room (default is true)
   */
-  usersCanGetRoomUsers: true,
+  // usersCanGetRoomUsers: true,
 
   /*
-    Specify if user creating a room should automatically join it
+    Specify if user creating a room should automatically join it (default is true)
   */
-  autoJoinCreatedRoom: true,
+  // autoJoinCreatedRoom: true,
 
   /*
     Specify if empty rooms should be automatically deleted when the last user leaves
     If false, you should code your own room deletion logic
+    (default is true)
   */
-  autoDeleteEmptyRoom: true,
+  // autoDeleteEmptyRoom: true,
 
   /*
     Specify if the room list should be automatically sent when the number of users in a room changes
     usersCanListRooms must be true for this to work
     If false, you should code your own room list update to the clients
+    (default is true)
   */
-  autoSendRoomListOnUsersChange: true,
+  // autoSendRoomListOnUsersChange: true,
 
   /*
     You can provide a custom room class extending WSServerRoom to handle room events
@@ -67,14 +69,14 @@ const wsServer = new WSServerRoomManager({
 
       Dont forget to validate the ALL client data before using it
     */
-    onCreate(name, msg = null, clientMeta = null, client = null) {
-      // Throw a WSServerError to reject the room creation (the client promise will then be rejected)
-      if (name === 'bad-words') throw new WSServerError('Bad words are not allowed');
-      // You can return an object that will be available in the room instance as this.meta
-      // If you want to change the room name, you can return the name in the object
-      // this will be useful if you want to sanitize the room name
-      return {};
-    }
+    // onCreate(name, msg = null, clientMeta = null, client = null) {
+    //   // Throw a WSServerError to reject the room creation (the client promise will then be rejected)
+    //   if (name === 'bad-words') throw new WSServerError('Bad words are not allowed');
+    //   // You can return an object that will be available in the room instance as this.meta
+    //   // If you want to change the room name, you can return the name in the object
+    //   // this will be useful if you want to sanitize the room name
+    //   return {};
+    // }
 
     /*
       When a client joins the room, this hook will be called before the client is added to the room
@@ -86,11 +88,11 @@ const wsServer = new WSServerRoomManager({
 
       Dont forget to validate the ALL client data before using it
     */
-    onJoin(msg, clientMeta, client) {
-      // Throw a WSServerError to reject the client join (the client promise will then be rejected)
-      // if (msg?.color !== 'black' && msg?.color !== 'white') throw new WSServerError('Invalid color');
-      return {};
-    }
+    // onJoin(msg, clientMeta, client) {
+    //   Throw a WSServerError to reject the client join (the client promise will then be rejected)
+    //   if (msg?.color !== 'black' && msg?.color !== 'white') throw new WSServerError('Invalid color');
+    //   return {};
+    // }
 
     /*
       When a client sends a message to the room,
@@ -121,17 +123,17 @@ const wsServer = new WSServerRoomManager({
     /*
       When a client leaves the room, this hook will be called before the client is removed from the room
     */
-    onLeave(clientMeta, client) {
+    // onLeave(clientMeta, client) {
 
-    }
+    // }
 
     /*
       When a room is deleted, this hook will be called before the room is removed from the server
       You can use this hook to log results, save data, etc
     */
-    onDispose() {
+    // onDispose() {
 
-    }
+    // }
 
     /*
       When the server is sending client metadata to any client,
@@ -141,9 +143,7 @@ const wsServer = new WSServerRoomManager({
       This is useful if you want to hide some client data from the client side
     */
     onSendClient(clientMeta) {
-      return {
-        user: 'Anon. ' + clientMeta.id.slice(0, 4),
-      };
+      return { user: 'Anon. ' + clientMeta.id.slice(0, 4) };
     }
 
     /*
@@ -153,9 +153,9 @@ const wsServer = new WSServerRoomManager({
 
       This is useful if you want to hide some room data from the client side
     */
-    onSendRoom() {
-      return this.meta;
-    }
+    // onSendRoom() {
+    //   return this.meta;
+    // }
 
     /*
       When the server is sending the list of rooms to any client,
@@ -163,9 +163,9 @@ const wsServer = new WSServerRoomManager({
 
       for example, you can hide allready full rooms or running games
     */
-    static onSendRoomsList(rooms) {
-      return rooms;
-    }
+    // static onSendRoomsList(rooms) {
+    //   return rooms;
+    // }
 
   },
 });
