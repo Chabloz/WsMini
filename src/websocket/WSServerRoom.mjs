@@ -60,4 +60,9 @@ export default class WSServerRoom {
       return rooms;
     }
 
+    dispose() {
+      // Internal method to dispose the room
+      // Used in WSServerGameRoom.mjs to stop the game loop for example
+    }
+
 }
