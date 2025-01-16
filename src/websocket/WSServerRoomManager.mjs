@@ -173,7 +173,6 @@ export default class WSServerRoomManager extends WSServerPubSub {
     } catch (e) {
       this.log(e.name + ': ' + e.message);
     }
-    // queueMicrotask(() => this.pubRoomClients(room));
     const response = { name: room.name, meta: roomMeta };
     if (this.usersCanGetRoomUsers) response.clients = this.prepareRoomClients(room);
     return response;
@@ -225,7 +224,6 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
       Object.assign(clientMeta, meta);
       this.addClientToRoom(roomName, clientMeta, client);
-      // queueMicrotask(() => this.pubRoomClients(room));
     }
 
     let roomMeta = {};
