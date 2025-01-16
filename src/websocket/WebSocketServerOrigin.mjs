@@ -4,7 +4,6 @@ export default class WebSocketServerOrigin extends WebSocketServer {
 
   constructor(options, callback) {
     super(options, callback);
-    // origins: string | string[]
     if (!this.options?.origins) {
       throw new Error('Missing origins option');
     }
