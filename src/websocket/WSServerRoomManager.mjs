@@ -3,12 +3,13 @@ import WSServerError from "./WSServerError.mjs";
 import WSServerRoom from "./WSServerRoom.mjs";
 
 import crypto from 'crypto';
+import WSServerGameRoom from "./WSServerGameRoom.mjs";
 
 export default class WSServerRoomManager extends WSServerPubSub {
   rooms = new Map();
   prefix = '__room-';
   actionsRoom = ['pub-room'];
-  syncModes = ['immediate', 'immediate-other'];
+  syncModes = ['immediate', 'immediate-other', 'patch'];
 
   constructor({
     maxUsersByRoom = 10,
@@ -51,9 +52,18 @@ export default class WSServerRoomManager extends WSServerPubSub {
     this.autoDeleteEmptyRoom = autoDeleteEmptyRoom;
     this.autoSendRoomListOnUsersChange = autoSendRoomListOnUsersChange;
 
-    if (syncMode === null) syncMode = this.syncModes[0];
+    const isGameRoom = this.roomClass.prototype instanceof WSServerGameRoom;
+
+    if (syncMode === null) syncMode = isGameRoom ? 'patch' : 'immediate';
     if (!this.syncModes.includes(syncMode)) throw new Error('Invalid sync mode');
+    if (isGameRoom && syncMode !== 'patch') throw new Error('Invalid sync mode for game room, must be "patch"');
+
+
     this.syncMode = syncMode;
+
+    if (this.syncMode === 'patch' && !(this.roomClass.prototype instanceof WSServerGameRoom)) {
+      throw new Error("Room class for 'patch' mode must be an instance of WSServerGameRoom");
+    }
 
     if (this.usersCanCreateRoom) {
       this.clientCreateRoom = this.clientCreateRoom.bind(this);

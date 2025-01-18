@@ -6,7 +6,6 @@ const wsServer = new WSServerRoomManager({
   port: 8889,
   origins: '*',
   maxUsersByRoom: 10,
-  autoDeleteEmptyRoom: false,
   roomClass: class extends WSServerRoom {
     onMsg(msg, clientMeta, client) {
       return {
