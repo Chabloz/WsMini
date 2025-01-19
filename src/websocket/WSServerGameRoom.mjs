@@ -108,7 +108,6 @@ export default class WSServerGameRoom extends WSServerRoom {
   }
 
   unregister(callback) {
-    console.log('unregister');
     return this.registredUpdate.delete(callback);
   }
 

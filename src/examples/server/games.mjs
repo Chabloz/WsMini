@@ -14,8 +14,13 @@ const wsServer = new WSServerRoomManager({
       this.startMainLoop();
     }
 
+    onCmdFire(msg, clientMeta, client) {
+      // Handle a custom command
+      console.log('User ' + clientMeta.id.slice(0, 4) + ' send "Fire" cmd', msg);
+    }
+
     onMsg(msg, clientMeta, client) {
-      // validate and store clients inputs
+      // handle a all other messages
     }
 
     onTick(deltaTime, elapsedTime) {

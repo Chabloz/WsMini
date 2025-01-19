@@ -12,7 +12,6 @@ const nameInput = document.querySelector('#name');
 const errDom = document.querySelector('error-message');
 const chatDom = document.querySelector('#chat');
 const chatForm = document.querySelector('#chat-form');
-const chatInput = document.querySelector('#chat-form input');
 const usersListDom = document.querySelector('the-users-list');
 const leaveBtn = document.querySelector('#leave');
 
@@ -40,8 +39,7 @@ roomsDom.addEventListener('click', e => {
 });
 chatForm.addEventListener('submit', e => {
   e.preventDefault();
-  curRoom.send(chatInput.value);
-  chatInput.value = '';
+  curRoom.sendCmd('fire', {foo: 'bar'});
 });
 leaveBtn.addEventListener('click', async () => {
   curRoom.leave();
@@ -68,7 +66,6 @@ function showRoom(room) {
   lobbyDom.classList.add('hidden');
   room.onMessage(onRoomMessage);
   room.onClients(onClients);
-  chatInput.focus();
 }
 
 function onRoomMessage(data) {

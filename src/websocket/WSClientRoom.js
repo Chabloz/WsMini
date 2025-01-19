@@ -41,6 +41,10 @@ export default class WSClientRoom extends WSClient {
     this.wsClient.send(JSON.stringify({action: 'pub-room', room: name, msg: data}));
   }
 
+  roomSendCmd(name, cmd, data = {}) {
+    this.wsClient.send(JSON.stringify({action: 'pub-room-cmd', cmd, room: name, msg: data}));
+  }
+
   roomOnMessage(name, callback) {
     return this.on(`ws:chan:${this.prefix + name}`, callback);
   }
@@ -68,6 +72,10 @@ class Room {
 
   send(data) {
     this.wsClient.roomSend(this.name, data);
+  }
+
+  sendCmd(cmd, data = {}) {
+    this.wsClient.roomSendCmd(this.name, cmd, data);
   }
 
   leave() {

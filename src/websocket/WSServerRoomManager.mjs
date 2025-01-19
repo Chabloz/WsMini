@@ -8,7 +8,7 @@ import WSServerGameRoom from "./WSServerGameRoom.mjs";
 export default class WSServerRoomManager extends WSServerPubSub {
   rooms = new Map();
   prefix = '__room-';
-  actionsRoom = ['pub-room'];
+  actionsRoom = ['pub-room', 'pub-room-cmd'];
   syncModes = ['immediate', 'immediate-other', 'patch'];
 
   constructor({
@@ -104,17 +104,26 @@ export default class WSServerRoomManager extends WSServerPubSub {
   }
 
   manageRoomActions(client, data) {
-    if (data.action === 'pub-room') {
+    if (data.action === 'pub-room' || data.action === 'pub-room-cmd') {
       if (typeof data?.msg === 'undefined') return this.sendError(client, 'Invalid message');
       if (typeof data?.room !== 'string') return this.sendError(client, 'Invalid room');
       if (!this.rooms.has(data.room)) return this.sendError(client, 'Unknown room');
 
       const room = this.rooms.get(data.room);
       if (!room.chan.clients.has(client)) return this.sendError(client, 'Client not in room');
-
       const clientMeta = this.clients.get(client);
+
+      let toCall = 'onMsg';
+      if (data.action === 'pub-room-cmd') {
+        if (typeof data?.cmd !== 'string') return this.sendError(client, 'Invalid command name');
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(data.cmd)) return this.sendError(client, 'Invalid command name');
+        data.cmd = data.cmd.charAt(0).toUpperCase() + data.cmd.slice(1);
+        toCall = `onCmd${data.cmd}`;
+        if (typeof room.manager[toCall] != 'function') return this.sendError(client, 'Unknown command');
+      }
+
       try {
-        var msg = room.manager.onMsg(data.msg, clientMeta, client);
+        var msg = room.manager[toCall](data.msg, clientMeta, client);
       } catch (e) {
         if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
         const response = e instanceof WSServerError ? e.message : 'Server error';
