@@ -1,7 +1,5 @@
 import WSClientRoom from "../../websocket/WSClientRoom.js";
-
-const ws = new WSClientRoom('ws://localhost:8890');
-await ws.connect();
+const TAU = Math.PI * 2;
 
 const createForm = document.querySelector('#room-form');
 const roomsDom = document.querySelector('#room-listing tbody');
@@ -10,10 +8,20 @@ const roomDom = document.querySelector('the-room');
 const roomName = document.querySelector('#room-name');
 const nameInput = document.querySelector('#name');
 const errDom = document.querySelector('error-message');
-const chatDom = document.querySelector('#chat');
-const chatForm = document.querySelector('#chat-form');
+const canvas = document.querySelector('#game');
+const ctx = canvas.getContext('2d');
 const usersListDom = document.querySelector('the-users-list');
 const leaveBtn = document.querySelector('#leave');
+
+const ws = new WSClientRoom('ws://localhost:8890');
+createForm.querySelector('button').classList.add('hidden');
+errDom.textContent = 'Connecting to server...';
+await ws.connect().catch(err => {
+  errDom.textContent = 'Cannot connect to server. Try again later.';
+  throw err;
+});
+errDom.textContent = '';
+createForm.querySelector('button').classList.remove('hidden');
 
 let curRoom = null;
 
@@ -37,10 +45,23 @@ roomsDom.addEventListener('click', e => {
   if (e.target.tagName != 'BUTTON') return;
   joinOrCreateRoom(e, e.target.dataset.game);
 });
-chatForm.addEventListener('submit', e => {
-  e.preventDefault();
-  curRoom.sendCmd('fire', {foo: 'bar'});
+
+document.addEventListener('keydown', e => {
+  if (!curRoom || e.repeat) return;
+  if (e.code === 'Space') curRoom.sendCmd('start_fire');
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') curRoom.sendCmd('start_turn', {dir: 'l'});
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') curRoom.sendCmd('start_turn', {dir: 'r'});
+  if (e.code === 'ArrowUp' || e.code === 'KeyW') curRoom.sendCmd('start_move');
 });
+
+document.addEventListener('keyup', e => {
+  if (!curRoom) return;
+  if (e.code === 'Space') curRoom.sendCmd('stop_fire');
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') curRoom.sendCmd('stop_turn', {dir: 'l'});
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') curRoom.sendCmd('stop_turn', {dir: 'r'});
+  if (e.code === 'ArrowUp' || e.code === 'KeyW') curRoom.sendCmd('stop_move');
+});
+
 leaveBtn.addEventListener('click', async () => {
   curRoom.leave();
   curRoom = null;
@@ -60,23 +81,20 @@ function joinOrCreateRoom(evt, roomName) {
 
 function showRoom(room) {
   curRoom = room;
-  chatDom.replaceChildren();
   roomName.textContent = room.name;
   roomDom.classList.remove('hidden');
   lobbyDom.classList.add('hidden');
-  room.onMessage(onRoomMessage);
+  room.onMessage(onWorldUpdate);
   room.onClients(onClients);
 }
 
-function onRoomMessage(data) {
-  chatDom.insertAdjacentHTML('beforeend', `
-    <p>
-      <time>${new Date(data.time).toLocaleTimeString()}</time>
-      <the-user>${data.user}</the-user>
-      <the-msg>${data.msg}</the-msg>
-    </p>
-  `);
-  chatDom.scrollTop = chatDom.scrollHeight;
+function onWorldUpdate(world) {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+
+  for (const player of world.players) {
+    drawPlayer(player);
+  }
 }
 
 function onClients(users) {
@@ -84,4 +102,19 @@ function onClients(users) {
   for (const data of users) {
     usersListDom.insertAdjacentHTML('beforeend', `<a-user>${data.user}</a-user>`);
   }
+}
+
+function drawPlayer(player, color = 'tomato') {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.beginPath();
+  ctx.arc(player.x * canvas.width, player.y * canvas.height, 10, 0, TAU);
+  ctx.moveTo(player.x * canvas.width, player.y * canvas.height);
+  ctx.lineTo(
+    player.x * canvas.width + 20 * Math.cos(player.angle),
+    player.y * canvas.height + 20 * Math.sin(player.angle)
+  );
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
 }

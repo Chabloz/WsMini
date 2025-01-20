@@ -239,9 +239,9 @@ export default class WSServerRoomManager extends WSServerPubSub {
         this.deleteRoom(roomName);
         throw new WSServerError('Room join aborted');
       }
-      if (typeof metaUser !== 'object') meta = {};
+      if (typeof metaUser !== 'object') metaUser = {};
 
-      Object.assign(clientMeta, meta);
+      Object.assign(clientMeta, metaUser);
       this.addClientToRoom(roomName, clientMeta, client);
     }
 
