@@ -1,5 +1,10 @@
-import WSClientRoom from "../../websocket/WSClientRoom.js";
+/*
+ Simple example of a multiplayer game using the WebSocket API
 
+ You should look first at the server code to understand the game loop and the server's logic
+ Look at simpler examples like the chat and rooms examples to understand the WebSocket API first
+*/
+import WSClientRoom from "../../websocket/WSClientRoom.js";
 const createForm = document.querySelector('#room-form');
 const roomsDom = document.querySelector('#room-listing tbody');
 const lobbyDom = document.querySelector('the-lobby');
@@ -15,6 +20,13 @@ const leaveBtn = document.querySelector('#leave');
 const ws = new WSClientRoom('ws://localhost:8890');
 createForm.querySelector('button').classList.add('hidden');
 errDom.textContent = 'Connecting to server...';
+/*
+  The connect method returns a promise that will resolve when the connection is established
+  You can catch the error if the connection fails. The connection failed if:
+  - The server is not running
+  - The server is full
+  - The authentication failed (not using authentication in this example)
+*/
 await ws.connect().catch(err => {
   errDom.textContent = 'Cannot connect to server. Try again later.';
   throw err;
@@ -23,6 +35,17 @@ errDom.textContent = '';
 createForm.querySelector('button').classList.remove('hidden');
 
 let room = null;
+
+/*
+  This constant will store the game World state and the last World state
+  to interpolate the player positions between each patch from the server.
+  The delay is the same as the server's patch rate to have a smooth rendering.
+
+  You are not forced to interpolate, you can just draw the player positions
+  But if you do not, you should patch the world at a high rate (for example 60 per second)
+  to have a smooth rendering (see the server code for more details)
+  In this example we patch the world at 20 patch per second (50ms the default value)
+*/
 const game = {
   prevWorld: null,
   curWorld: null,
@@ -30,6 +53,11 @@ const game = {
   delay: 50  // [ms], must be the same as server's patch rate (default 50ms)
 };
 
+/*
+  The following is nearly the same as the rooms example
+  you can look at the rooms example to see how it works.
+  Jump directly to line 83.
+*/
 nameInput.focus();
 
 await ws.roomOnRooms(rooms => {
@@ -51,6 +79,11 @@ roomsDom.addEventListener('click', e => {
   joinOrCreateRoom(e, e.target.dataset.game);
 });
 
+/*
+  Adding keyboard events to send commands to the server.
+  Usually you would send commands on keydown and stop the command on keyup.
+  Here we use key.code to have a better compatibility with different keyboard layouts.
+*/
 document.addEventListener('keydown', e => {
   if (!room || e.repeat) return;
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') room.sendCmd('start_turn', {dir: 'l'});
@@ -67,9 +100,17 @@ document.addEventListener('keyup', e => {
   if (e.code === 'ArrowDown' || e.code === 'KeyS') room.sendCmd('stop_move', {back: true});
 });
 
+/*
+  On leave, we switch back to the lobby and clear the canvas
+*/
 leaveBtn.addEventListener('click', async () => {
   room.leave();
   room = null;
+
+  // Clear the canvas, this is better than clearRect because it is responsive
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+
   roomDom.classList.add('hidden');
   lobbyDom.classList.remove('hidden');
 });
@@ -84,22 +125,34 @@ function joinOrCreateRoom(evt, roomName) {
     });
 }
 
+/*
+  When joining a game, we add a handler to update the world state
+*/
 function showRoom(theRoom) {
   room = theRoom;
   roomName.textContent = room.name;
   roomDom.classList.remove('hidden');
   lobbyDom.classList.add('hidden');
+  // The server will send the world state at the patch rate (see the server code for more details)
   room.onMessage(updateWorld);
+  // The server will send the client list when a user is joining or leaving the room (or is disconnected)
   room.onClients(onClients);
 }
 
 function onClients(users) {
+  // we just replace the users list with the new list
   usersListDom.replaceChildren();
   for (const data of users) {
     usersListDom.insertAdjacentHTML('beforeend', `<a-user>${data.user}</a-user>`);
   }
 }
 
+/*
+  We store two world states to interpolate the player positions between each patch from the server.
+  structuredClone is a function that will deep clone the world state.
+  This way we can store the previous world state and the current world state without any reference between them.
+  We store the timestamp of the current world state to calculate the delta time between each tick.
+*/
 function updateWorld(world) {
   game.prevWorld = game.curWorld;
   game.curWorld = structuredClone(world);
@@ -107,23 +160,37 @@ function updateWorld(world) {
   game.lastUpdateTime = performance.now();
 }
 
+/*
+  We use a simple linear interpolation to smooth the player positions
+*/
 function lerp(start, end, t) {
   return start + (end - start) * t;
 }
 
+/*
+  Clamp a value between a min and a max
+  We need to normalize the interpolation progress between 0 and 1
+*/
 function clamp(val, min = 0, max = 1) {
   return Math.min(max, Math.max(min, val));
 }
 
+/*
+  This returns the interpolated world state.
+  If there is no previous world state, we return the current world state.
+  (Nothing to interpolate at the first frame)
+*/
 function getInterpolatedWorld() {
   if (!game.prevWorld) return game.curWorld;
 
+  // We calculate the progress (between 0 and 1) of the interpolation
   const now = performance.now();
   const dt = now - game.lastUpdateTime;
   const progress = clamp(dt / game.delay);
 
   return {
     ...game.curWorld,
+    // On this small example we only interpolate the player positions
     players: game.curWorld.players.map((_, ind) => getInterpolatedPlayer(ind, progress)),
   };
 }
@@ -133,11 +200,23 @@ function getInterpolatedPlayer(ind, progress) {
   const prevPlayer = game.prevWorld.players[ind];
   return {
     ...player,
+    // Only position is interpolated,
+    // but on a real game you should interpolate the angle and other properties
     x: lerp(prevPlayer.x, player.x, progress),
     y: lerp(prevPlayer.y, player.y, progress)
   };
 }
 
+/*
+  Draw the player on the canvas
+  We use no libraries to keep the example simple and just use the 2D canvas API
+
+  In this example, the data is normalized between 0 and 1,
+  so we need to denormalize the values to the canvas size.
+
+  Canvas ratio is 1:1 (square), see the CSS for more details.
+  This will ensure that the velocity is the same in all directions.
+*/
 function drawPlayer(player) {
   // Body
   ctx.fillStyle = player.color;
@@ -163,10 +242,16 @@ function drawPlayer(player) {
   ctx.fill();
 }
 
+/*
+ Main draw loop
+ We does not calculate the delta time because we interpolate the player positions.
+ To see a very good explanation of the anatomy of a game loop, see: https://github.com/IceCreamYou/MainLoop.js/
+*/
 function draw() {
   requestAnimationFrame(draw);
   if (!game?.curWorld) return;
 
+  // Clear the canvas, this is better than clearRect because it is responsive
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
