@@ -1,5 +1,4 @@
 import WSClientRoom from "../../websocket/WSClientRoom.js";
-const TAU = Math.PI * 2;
 
 const createForm = document.querySelector('#room-form');
 const roomsDom = document.querySelector('#room-listing tbody');
@@ -104,11 +103,11 @@ function onClients(users) {
   }
 }
 
-function drawPlayer(player, color = 'tomato') {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
+function drawPlayer(player) {
+  ctx.fillStyle = player.color;
+  ctx.strokeStyle = player.color;
   ctx.beginPath();
-  ctx.arc(player.x * canvas.width, player.y * canvas.height, 10, 0, TAU);
+  ctx.arc(player.x * canvas.width, player.y * canvas.height, 10, 0, Math.PI * 2);
   ctx.moveTo(player.x * canvas.width, player.y * canvas.height);
   ctx.lineTo(
     player.x * canvas.width + 20 * Math.cos(player.angle),

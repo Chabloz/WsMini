@@ -1,14 +1,14 @@
 import WSServerRoomManager from '../../websocket/WSServerRoomManager.mjs';
 import WSServerGameRoom from '../../websocket/WSServerGameRoom.mjs';
-const TAU = Math.PI * 2;
 
 class Player {
 
-  constructor(x, y, angle, life) {
+  constructor(x, y, angle, life, color) {
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.life = life;
+    this.color = color;
     this.isFiring = false;
     this.isMov = false;
     this.isRotL = false;
@@ -33,8 +33,8 @@ const wsServer = new WSServerRoomManager({
     onCreate() {
       this.world = {
         players: [
-          new Player(0.1, 0.5, 0, 100),
-          new Player(0.9, 0.5, TAU / 2, 100),
+          new Player(0.1, 0.5, 0, 100, 'tomato'),
+          new Player(0.9, 0.5, Math.PI, 100, 'dodgerblue'),
         ],
       };
       this.setPatchPerSec(60);
