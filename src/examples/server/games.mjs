@@ -37,7 +37,7 @@ const wsServer = new WSServerRoomManager({
           new Player(0.9, 0.5, Math.PI, 100, 'dodgerblue'),
         ],
       };
-      this.setPatchPerSec(60);
+      this.setPatchPerSec(20);
       this.startMainLoop();
     }
 

@@ -22,7 +22,13 @@ await ws.connect().catch(err => {
 errDom.textContent = '';
 createForm.querySelector('button').classList.remove('hidden');
 
-let curRoom = null;
+let room = null;
+const game = {
+  prevWorld: null,
+  curWorld: null,
+  lastUpdateTime: 0,
+  interpolationDelay: 50  // [ms], must be the same as server's patch rate
+};
 
 nameInput.focus();
 
@@ -46,24 +52,24 @@ roomsDom.addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (!curRoom || e.repeat) return;
-  if (e.code === 'Space') curRoom.sendCmd('start_fire');
-  if (e.code === 'ArrowLeft' || e.code === 'KeyA') curRoom.sendCmd('start_turn', {dir: 'l'});
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') curRoom.sendCmd('start_turn', {dir: 'r'});
-  if (e.code === 'ArrowUp' || e.code === 'KeyW') curRoom.sendCmd('start_move');
+  if (!room || e.repeat) return;
+  if (e.code === 'Space') game.sendCmd('start_fire');
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') room.sendCmd('start_turn', {dir: 'l'});
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') room.sendCmd('start_turn', {dir: 'r'});
+  if (e.code === 'ArrowUp' || e.code === 'KeyW') room.sendCmd('start_move');
 });
 
 document.addEventListener('keyup', e => {
-  if (!curRoom) return;
-  if (e.code === 'Space') curRoom.sendCmd('stop_fire');
-  if (e.code === 'ArrowLeft' || e.code === 'KeyA') curRoom.sendCmd('stop_turn', {dir: 'l'});
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') curRoom.sendCmd('stop_turn', {dir: 'r'});
-  if (e.code === 'ArrowUp' || e.code === 'KeyW') curRoom.sendCmd('stop_move');
+  if (!room) return;
+  if (e.code === 'Space') room.sendCmd('stop_fire');
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') room.sendCmd('stop_turn', {dir: 'l'});
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') room.sendCmd('stop_turn', {dir: 'r'});
+  if (e.code === 'ArrowUp' || e.code === 'KeyW') room.sendCmd('stop_move');
 });
 
 leaveBtn.addEventListener('click', async () => {
-  curRoom.leave();
-  curRoom = null;
+  room.leave();
+  room = null;
   roomDom.classList.add('hidden');
   lobbyDom.classList.remove('hidden');
 });
@@ -78,22 +84,13 @@ function joinOrCreateRoom(evt, roomName) {
     });
 }
 
-function showRoom(room) {
-  curRoom = room;
+function showRoom(theRoom) {
+  room = theRoom;
   roomName.textContent = room.name;
   roomDom.classList.remove('hidden');
   lobbyDom.classList.add('hidden');
-  room.onMessage(onWorldUpdate);
+  room.onMessage(updateWorld);
   room.onClients(onClients);
-}
-
-function onWorldUpdate(world) {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-
-  for (const player of world.players) {
-    drawPlayer(player);
-  }
 }
 
 function onClients(users) {
@@ -101,6 +98,44 @@ function onClients(users) {
   for (const data of users) {
     usersListDom.insertAdjacentHTML('beforeend', `<a-user>${data.user}</a-user>`);
   }
+}
+
+function updateWorld(world) {
+  game.prevWorld = game.curWorld;
+  game.curWorld = structuredClone(world);
+  game.curWorld.timestamp = performance.now();
+  game.lastUpdateTime = performance.now();
+}
+
+function lerp(start, end, t) {
+  return start + (end - start) * t;
+}
+
+function clamp(val, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, val));
+}
+
+function getInterpolatedWorld() {
+  if (!game.prevWorld) return game.curWorld;
+
+  const now = performance.now();
+  const dt = now - game.lastUpdateTime;
+  const alpha = clamp(dt / game.interpolationDelay);
+
+  return {
+    ...game.curWorld,
+    players: game.curWorld.players.map((_, ind) => getInterpolatedPlayer(ind, alpha)),
+  };
+}
+
+function getInterpolatedPlayer(ind, alpha) {
+  const player = game.curWorld.players[ind];
+  const prevPlayer = game.prevWorld.players[ind];
+  return {
+    ...player,
+    x: lerp(prevPlayer.x, player.x, alpha),
+    y: lerp(prevPlayer.y, player.y, alpha)
+  };
 }
 
 function drawPlayer(player) {
@@ -117,3 +152,16 @@ function drawPlayer(player) {
   ctx.fill();
   ctx.stroke();
 }
+
+function draw() {
+  requestAnimationFrame(draw);
+  if (!game?.curWorld) return;
+
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+
+  for (const player of getInterpolatedWorld().players) {
+    drawPlayer(player);
+  }
+}
+requestAnimationFrame(draw);
