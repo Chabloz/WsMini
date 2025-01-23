@@ -1,6 +1,9 @@
 # WsMini
 
-WebSocket lib for real-time applications with RPC, PubSub, Rooms and Game state synchronization.
+Minimalist WebSocket client and server for real-time applications with RPC, PubSub, Rooms and Game state synchronization based on WS https://github.com/websockets/ws
+
+[![npm version](https://badge.fury.io/js/wsmini.svg)](https://badge.fury.io/js/wsmini)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
 
@@ -9,6 +12,12 @@ WebSocket lib for real-time applications with RPC, PubSub, Rooms and Game state 
 - 🎯 PubSub - Very simple Publish/Subscribe system
 - 🏠 Room-based management system
 - 🎮 Game-ready with fixed timestep game loop and state synchronization
+
+## Installation
+
+```bash
+npm install wsmini
+```
 
 ## Examples
 

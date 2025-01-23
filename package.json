@@ -1,5 +1,34 @@
 {
   "dependencies": {
     "ws": "^8.18.0"
-  }
+  },
+  "name": "wsmini",
+  "version": "0.7.5",
+  "description": "Minimalist WebSocket client and server for real-time applications with RPC, PubSub, Rooms and Game state synchronization.",
+  "main": "src/index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chabloz/WsMini.git"
+  },
+  "keywords": [
+    "WebSocket",
+    "real-time",
+    "RPC",
+    "PubSub",
+    "rooms",
+    "game-development",
+    "state-synchronization",
+    "fixed-timestep",
+    "game-loop"
+  ],
+  "author": "Nicolas Chabloz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Chabloz/WsMini/issues"
+  },
+  "homepage": "https://github.com/Chabloz/WsMini#readme"
 }
