@@ -25,6 +25,7 @@ Simple request/response pattern with error handling.
 
 Complete server example located in [src/examples/server/rpc.mjs](src/examples/server/rpc.mjs).
 ```js
+import { WSServerPubSub, WSServerError } from 'wsmini';
 const wsServer = new WSServerPubSub({ port: 8888 });
 wsServer.addRpc('add', (data) => {
   if (typeof data?.n1 != 'number') throw new WSServerError('n1 must be a number');
@@ -36,6 +37,7 @@ wsServer.start();
 
 Complete client example located in [src/examples/client/rpc.js](src/examples/client/rpc.js).
 ```javascript
+import { WSClient } from 'wsmini';
 const ws = new WSClient('ws://localhost:8888');
 await ws.connect();
 const result = await ws.rpc('add', {n1: 5, n2: 3});
@@ -47,6 +49,7 @@ Subscribe to channels and broadcast messages.
 
 Complete server example located in [src/examples/server/chat.mjs](src/examples/server/chat.mjs).
 ```javascript
+import { WSServerPubSub } from 'wsmini';
 const wsServer = new WSServerPubSub({ port: 8887 });
 wsServer.addChannel('chat', {
   hookPub: (msg, user) => ({
@@ -60,6 +63,7 @@ wsServer.start();
 
 Complete client example located in [src/examples/client/chat.js](src/examples/client/chat.js).
 ```javascript
+import { WSClient } from 'wsmini';
 const ws = new WSClient('ws://localhost:8887');
 await ws.connect();
 ws.sub('chat', msg => console.log(`${msg.user}: ${msg.msg}`));
@@ -71,6 +75,7 @@ Create/join rooms with built-in message handling.
 
 Complete server example located in [src/examples/server/room.mjs](src/examples/server/room.mjs).
 ```javascript
+import { WSServerRoomManager, WSServerRoom } from 'wsmini';
 const wsServer = new WSServerRoomManager({
   port: 8889,
   maxUsersByRoom: 10,
@@ -87,6 +92,7 @@ const wsServer = new WSServerRoomManager({
 
 Client:
 ```javascript
+import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('ws://localhost:8889');
 const room1 = await ws.roomCreateOrJoin('room 1');
 room1.onMessage(data => console.log(data.msg, data.time));
@@ -100,6 +106,8 @@ room1.send('Hello room 1!');
 
 Complete server example located in [src/examples/server/game.mjs](src/examples/server/game.mjs).
 ```javascript
+import { WSServerRoomManager, WSServerGameRoom } from 'wsmini';
+
 class Player {
 
   constructor(x, y) {
@@ -148,6 +156,7 @@ wsServer.start();
 
 complete client example located in [src/examples/client/game.js](src/examples/client/game.js).
 ```javascript
+import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('ws://localhost:8890');
 const game1 = await ws.roomJoin('game1');
 game1.onMessage(world => {
