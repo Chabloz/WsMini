@@ -118,7 +118,7 @@ const wsServer = new WSServerRoomManager({
       this.startMainLoop();
     }
 
-    onCmdStart_move(msg, clientMeta) {
+    onCmdMove(msg, clientMeta) {
       // define custom commands
     }
 
@@ -143,6 +143,7 @@ game1.onMessage(world => {
   // update the game state on the client side
 });
 document.addEventListener('keydown', e => {
+  // Send custom command
   if (e.key === 'ArrowUp') game1.sendCmd('move', {dir: 'up'});
   if (e.key === 'ArrowDown') game1.sendCmd('move', {dir: 'down'});
   if (e.key === 'ArrowLeft') game1.sendCmd('move', {dir: 'left'});
