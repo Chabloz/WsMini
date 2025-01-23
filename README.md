@@ -2,7 +2,6 @@
 
 Minimalist WebSocket client and server for real-time applications with RPC, PubSub, Rooms and Game state synchronization based on WS https://github.com/websockets/ws
 
-[![npm version](https://badge.fury.io/js/wsmini.svg)](https://badge.fury.io/js/wsmini)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
