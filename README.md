@@ -105,9 +105,11 @@ class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;
+    this.isMov = false;
   }
 
   tick(dt) {
+    if (!this.isMov) return;
     // update the player data (take dt into account)
   }
 }
@@ -126,9 +128,10 @@ const wsServer = new WSServerRoomManager({
       this.startMainLoop();
     }
 
-    onCmdMove(msg, clientMeta) {
-      // define custom commands
-    }
+    // define custom commands
+    onCmdMove(msg, clientMeta) {      
+      // update player state
+    }    
 
     onTick(dt) {
       for (const player of this.world.players) player.tick(dt);
@@ -152,10 +155,10 @@ game1.onMessage(world => {
 });
 document.addEventListener('keydown', e => {
   // Send custom command
-  if (e.key === 'ArrowUp') game1.sendCmd('move', {dir: 'up'});
-  if (e.key === 'ArrowDown') game1.sendCmd('move', {dir: 'down'});
-  if (e.key === 'ArrowLeft') game1.sendCmd('move', {dir: 'left'});
-  if (e.key === 'ArrowRight') game1.sendCmd('move', {dir: 'right'});
+  if (e.code === 'ArrowUp') game1.sendCmd('move', {dir: 'up'});
+  if (e.code === 'ArrowDown') game1.sendCmd('move', {dir: 'down'});
+  if (e.code === 'ArrowLeft') game1.sendCmd('move', {dir: 'left'});
+  if (e.code === 'ArrowRight') game1.sendCmd('move', {dir: 'right'});
 });
 
 function render() {
