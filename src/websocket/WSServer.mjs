@@ -22,11 +22,11 @@ export default class WSServer {
    * Return {} if you don't need to store any additional information.
    */
   constructor({
-    port = 8887,
+    port = 443,
     maxNbOfClients = 1000,
     maxInputSize = 100000,
     verbose = true,
-    origins = 'http://localhost:5173',
+    origins = '*',
     pingTimeout = 30000,
     authCallback = (token, request, wsServer) => ({}),
   } = {}) {
