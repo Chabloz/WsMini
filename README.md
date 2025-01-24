@@ -157,7 +157,7 @@ wsServer.start();
 complete client example located in [src/examples/client/games.js](src/examples/client/games.js).
 ```javascript
 import { WSClientRoom } from 'wsmini';
-const ws = new WSClientRoom('ws://localhost:8890');
+const ws = new WSClientRoom('wss://localhost');
 const game1 = await ws.roomJoin('game1');
 game1.onMessage(world => {
   // update the game state on the client side
