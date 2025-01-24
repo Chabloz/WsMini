@@ -73,7 +73,7 @@ ws.pub('chat', 'Hello everyone!');
 ### 3. Room Management
 Create/join rooms with built-in message handling.
 
-Complete server example located in [src/examples/server/room.mjs](src/examples/server/room.mjs).
+Complete server example located in [src/examples/server/room.mjs](src/examples/server/rooms.mjs).
 ```javascript
 import { WSServerRoomManager, WSServerRoom } from 'wsmini';
 const wsServer = new WSServerRoomManager({
@@ -90,7 +90,7 @@ const wsServer = new WSServerRoomManager({
 });
 ```
 
-Client:
+Complete client example located in [src/examples/client/rooms.js](src/examples/client/rooms.js).
 ```javascript
 import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('ws://localhost:8889');
