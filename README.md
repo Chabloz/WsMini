@@ -104,7 +104,7 @@ room1.send('Hello room 1!');
 - Register custom commands and patches.
 - Game list and player list synchronization.
 
-Complete server example located in [src/examples/server/game.mjs](src/examples/server/game.mjs).
+Complete server example located in [src/examples/server/game.mjs](src/examples/server/games.mjs).
 ```javascript
 import { WSServerRoomManager, WSServerGameRoom } from 'wsmini';
 
@@ -154,7 +154,7 @@ const wsServer = new WSServerRoomManager({
 wsServer.start();
 ```
 
-complete client example located in [src/examples/client/game.js](src/examples/client/game.js).
+complete client example located in [src/examples/client/game.js](src/examples/client/games.js).
 ```javascript
 import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('ws://localhost:8890');
