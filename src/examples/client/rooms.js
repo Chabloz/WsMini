@@ -43,7 +43,7 @@ chatForm.addEventListener('submit', e => {
   curRoom.send(chatInput.value);
   chatInput.value = '';
 });
-leaveBtn.addEventListener('click', async () => {
+leaveBtn.addEventListener('click', () => {
   curRoom.leave();
   curRoom = null;
   roomDom.classList.add('hidden');
