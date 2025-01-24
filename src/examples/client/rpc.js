@@ -15,7 +15,7 @@ rpcForm.addEventListener('submit', async (evt) => {
   const result = await ws.rpc('add', {n1, n2});
 
   resultsDom.textContent = result;
-  // Or with error manegement
+  // Or with error management
   // let result;
   // ws.rpc('add', {n1, n2})
   //   .then(response => result = response)
