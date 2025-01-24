@@ -245,7 +245,7 @@ function drawPlayer(player) {
 /*
  Main draw loop
  We does not calculate the delta time because we interpolate the player positions.
- To see a very good explanation of the anatomy of a game loop, see: https://github.com/IceCreamYou/MainLoop.js/
+ To see a very good explanation of the anatomy of a game loop, see: https://www.isaacsukin.com/news/2015/01/detailed-explanation-javascript-game-loops-and-timing
  You'll find the "real" game loop in the WSServerGameRoom class.
 */
 function draw() {
