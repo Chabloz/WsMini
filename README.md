@@ -2,7 +2,6 @@
 
 Minimalist WebSocket client and server for real-time applications with RPC, PubSub, Rooms and Game state synchronization based on WS https://github.com/websockets/ws
 
-[![npm version](https://badge.fury.io/js/wsmini.svg)](https://badge.fury.io/js/wsmini)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -26,6 +25,7 @@ Simple request/response pattern with error handling.
 
 Complete server example located in [src/examples/server/rpc.mjs](src/examples/server/rpc.mjs).
 ```js
+import { WSServerPubSub, WSServerError } from 'wsmini';
 const wsServer = new WSServerPubSub({ port: 8888 });
 wsServer.addRpc('add', (data) => {
   if (typeof data?.n1 != 'number') throw new WSServerError('n1 must be a number');
@@ -37,6 +37,7 @@ wsServer.start();
 
 Complete client example located in [src/examples/client/rpc.js](src/examples/client/rpc.js).
 ```javascript
+import { WSClient } from 'wsmini';
 const ws = new WSClient('ws://localhost:8888');
 await ws.connect();
 const result = await ws.rpc('add', {n1: 5, n2: 3});
@@ -48,6 +49,7 @@ Subscribe to channels and broadcast messages.
 
 Complete server example located in [src/examples/server/chat.mjs](src/examples/server/chat.mjs).
 ```javascript
+import { WSServerPubSub } from 'wsmini';
 const wsServer = new WSServerPubSub({ port: 8887 });
 wsServer.addChannel('chat', {
   hookPub: (msg, user) => ({
@@ -61,6 +63,7 @@ wsServer.start();
 
 Complete client example located in [src/examples/client/chat.js](src/examples/client/chat.js).
 ```javascript
+import { WSClient } from 'wsmini';
 const ws = new WSClient('ws://localhost:8887');
 await ws.connect();
 ws.sub('chat', msg => console.log(`${msg.user}: ${msg.msg}`));
@@ -70,8 +73,9 @@ ws.pub('chat', 'Hello everyone!');
 ### 3. Room Management
 Create/join rooms with built-in message handling.
 
-Complete server example located in [src/examples/server/room.mjs](src/examples/server/room.mjs).
+Complete server example located in [src/examples/server/room.mjs](src/examples/server/rooms.mjs).
 ```javascript
+import { WSServerRoomManager, WSServerRoom } from 'wsmini';
 const wsServer = new WSServerRoomManager({
   port: 8889,
   maxUsersByRoom: 10,
@@ -86,8 +90,9 @@ const wsServer = new WSServerRoomManager({
 });
 ```
 
-Client:
+Complete client example located in [src/examples/client/rooms.js](src/examples/client/rooms.js).
 ```javascript
+import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('ws://localhost:8889');
 const room1 = await ws.roomCreateOrJoin('room 1');
 room1.onMessage(data => console.log(data.msg, data.time));
@@ -99,16 +104,20 @@ room1.send('Hello room 1!');
 - Register custom commands and patches.
 - Game list and player list synchronization.
 
-Complete server example located in [src/examples/server/game.mjs](src/examples/server/game.mjs).
+Complete server example located in [src/examples/server/games.mjs](src/examples/server/games.mjs).
 ```javascript
+import { WSServerRoomManager, WSServerGameRoom } from 'wsmini';
+
 class Player {
 
   constructor(x, y) {
     this.x = x;
     this.y = y;
+    this.isMov = false;
   }
 
   tick(dt) {
+    if (!this.isMov) return;
     // update the player data (take dt into account)
   }
 }
@@ -127,9 +136,10 @@ const wsServer = new WSServerRoomManager({
       this.startMainLoop();
     }
 
-    onCmdMove(msg, clientMeta) {
-      // define custom commands
-    }
+    // define custom commands
+    onCmdMove(msg, clientMeta) {      
+      // update player state
+    }    
 
     onTick(dt) {
       for (const player of this.world.players) player.tick(dt);
@@ -144,19 +154,20 @@ const wsServer = new WSServerRoomManager({
 wsServer.start();
 ```
 
-complete client example located in [src/examples/client/game.js](src/examples/client/game.js).
+complete client example located in [src/examples/client/games.js](src/examples/client/games.js).
 ```javascript
-const ws = new WSClientRoom('ws://localhost:8890');
+import { WSClientRoom } from 'wsmini';
+const ws = new WSClientRoom('wss://localhost');
 const game1 = await ws.roomJoin('game1');
 game1.onMessage(world => {
   // update the game state on the client side
 });
 document.addEventListener('keydown', e => {
   // Send custom command
-  if (e.key === 'ArrowUp') game1.sendCmd('move', {dir: 'up'});
-  if (e.key === 'ArrowDown') game1.sendCmd('move', {dir: 'down'});
-  if (e.key === 'ArrowLeft') game1.sendCmd('move', {dir: 'left'});
-  if (e.key === 'ArrowRight') game1.sendCmd('move', {dir: 'right'});
+  if (e.code === 'ArrowUp') game1.sendCmd('move', {dir: 'up'});
+  if (e.code === 'ArrowDown') game1.sendCmd('move', {dir: 'down'});
+  if (e.code === 'ArrowLeft') game1.sendCmd('move', {dir: 'left'});
+  if (e.code === 'ArrowRight') game1.sendCmd('move', {dir: 'right'});
 });
 
 function render() {
