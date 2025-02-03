@@ -155,8 +155,7 @@ function onClients(users) {
 */
 function updateWorld(world) {
   game.prevWorld = game.curWorld;
-  game.curWorld = structuredClone(world);
-  game.curWorld.timestamp = performance.now();
+  game.curWorld = structuredClone(world);  
   game.lastUpdateTime = performance.now();
 }
 
