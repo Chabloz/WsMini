@@ -47,6 +47,7 @@ export default class WebSocketServerOrigin extends WebSocketServer {
   }
 
   checkOrigin(origin) {
+    if (!origin) origin = '';
     for (const allowedOrigin of this.options.origins) {
       if (allowedOrigin === '*') return true;
       if (!allowedOrigin.startsWith('http')) { // if allowedOrigin accept any protocol
