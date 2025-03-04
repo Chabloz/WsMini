@@ -115,6 +115,12 @@ export default class WSServerGameRoom extends WSServerRoom {
     this.frameDelta = 0;
   }
 
+  panic(frameDelta) {
+    // to be overriden if you want to handle the panic case
+    // by default we just reset the frameDelta
+    this.resetFrameDelta();
+  }
+
   _tick() {
     const now = this.hrtimeMs();
     this.deltaTime = now - this.lastTickTime;
