@@ -20,6 +20,15 @@ npm install wsmini
 
 ## Examples
 
+### Running the Examples
+To run the examples, you need to have Node.js installed. You can run the server examples using the following command:
+
+```bash
+node src/examples/server/games.mjs
+```
+
+Then, serve the client examples using a simple HTTP server (not included in this package to keep it lightweight). Client examples are located in `src/examples/client/`.
+
 ### 1. RPC - Remote Procedure Calls
 Simple request/response pattern with error handling.
 
@@ -137,9 +146,9 @@ const wsServer = new WSServerRoomManager({
     }
 
     // define custom commands
-    onCmdMove(msg, clientMeta) {      
+    onCmdMove(msg, clientMeta) {
       // update player state
-    }    
+    }
 
     onTick(dt) {
       for (const player of this.world.players) player.tick(dt);
