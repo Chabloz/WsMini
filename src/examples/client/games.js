@@ -149,13 +149,12 @@ function onClients(users) {
 
 /*
   We store two world states to interpolate the player positions between each patch from the server.
-  structuredClone is a function that will deep clone the world state.
   This way we can store the previous world state and the current world state without any reference between them.
   We store the timestamp of the current world state to calculate the delta time between each tick.
 */
 function updateWorld(world) {
   game.prevWorld = game.curWorld;
-  game.curWorld = structuredClone(world);  
+  game.curWorld = world;
   game.lastUpdateTime = performance.now();
 }
 
