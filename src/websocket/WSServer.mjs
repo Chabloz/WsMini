@@ -58,7 +58,7 @@ export default class WSServer {
   pingManagement() {
     for (const [client, metadata] of this.clients.entries()) {
       if (client.isAlive === false) {
-        this.log(`Client ${metadata.id} is dead`);
+        this.log(`Client ${metadata?.id} is dead`);
         client.terminate();
         this.clients.delete(client);
       } else {
@@ -72,7 +72,7 @@ export default class WSServer {
     if (this.server === null) return;
     for (const client of this.clients.keys()) client.close();
     clearInterval(this.pingInterval);
-    this.server.close(() => this.log("Server closed"));
+    this.server.close(() => this.log('Server closed'));
     this.server = null;
   }
 
@@ -86,7 +86,8 @@ export default class WSServer {
 
   log(message) {
     if (!this.verbose) return;
-    console.log(`[WSS] ${message}`);
+    const date = new Date().toISOString();
+    console.log(`[WSS][${date}] ${message}`);
   }
 
   onConnection(client, request) {
@@ -119,7 +120,7 @@ export default class WSServer {
     }
 
     this.createClientMetadata(client, customMetadata);
-    this.log(`New client connected: ${this.clients.get(client).id}`);
+    this.log(`New client connected: ${this.clients.get(client)?.id}`);
     this.sendAuthSuccess(client);
 
     client.on('error', (error) => this.onError(client, error));
@@ -133,19 +134,19 @@ export default class WSServer {
   }
 
   onClose(client) {
-    this.log(`Client disconnected: ${this.clients.get(client).id}`);
+    this.log(`Client disconnected: ${this.clients.get(client)?.id}`);
     this.clients.delete(client);
   }
 
   onError(client, error) {
-    this.log(`Client ${this.clients.get(client).id} error: ${error?.message}`);
+    this.log(`Client ${this.clients.get(client)?.id} error: ${error?.message}`);
     client.close();
   }
 
   onMessage(client, message) {
     message = message.toString();
     if (message.length > this.maxInputSize) {
-      this.log(`Client ${this.clients.get(client).id} sent a message that is too large`);
+      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`);
       client.close();
       return;
     }

@@ -308,8 +308,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     } catch (e) {
       this.log(e.name + ': ' + e.message);
     }
-
-    this.log('Client ' + clientMeta.id + ' left room ' + roomName);
+    if (clientMeta) this.log('Client ' + clientMeta.id + ' left room ' + roomName);
     chan.clients.delete(client);
     chanClients.clients.delete(client);
     this.pubRoomClients(room);

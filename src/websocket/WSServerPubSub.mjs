@@ -108,7 +108,7 @@ export default class WSServerPubSub extends WSServer {
   onMessage(client, message) {
     message = message.toString();
     if (message.length > this.maxInputSize) {
-      this.log(`Client ${this.clients.get(client).id} sent a message that is too large`);
+      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`);
       client.close();
       return false;
     }

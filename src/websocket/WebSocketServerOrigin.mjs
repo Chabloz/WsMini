@@ -25,7 +25,8 @@ export default class WebSocketServerOrigin extends WebSocketServer {
 
   log(message) {
     if (!this.options?.verbose) return;
-    console.log(`[WSS] ${message}`);
+    const date = new Date().toISOString();
+    console.log(`[WSS][${date}] ${message}`);
   }
 
   handleUpgrade(request, socket, head, callback) {
