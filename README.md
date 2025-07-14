@@ -24,6 +24,8 @@ npm install wsmini
 When using in a browser environment, only client classes are available:
 
 ```javascript
+import { WSClient, WSClientRoom } from 'wsmini';
+// or specifically import the client bundle
 import { WSClient, WSClientRoom } from 'wsmini/client';
 ```
 
@@ -31,8 +33,14 @@ import { WSClient, WSClientRoom } from 'wsmini/client';
 When using in Node.js, only server classes are available:
 
 ```javascript
+import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WSServerError } from 'wsmini';
+// or specifically import server classes
 import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WSServerError } from 'wsmini/server';
 ```
+
+## Getting Started
+
+For a detailed guide on how to get started with WsMini, including setting up a server, connecting clients, and using RPC and PubSub features, please refer to the [Getting Started Guide](./docs/guides/getting-started.md). The full documentation is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization: [docs](./docs/index.md).
 
 ## Examples
 
@@ -43,7 +51,7 @@ To run the examples, you need to have Node.js installed. You can run the server 
 node docs/examples/server/games.mjs
 ```
 
-Then, serve the client examples using a simple HTTP server (not included in this package to keep it lightweight). Client examples are located in `src/examples/client/`.
+Then, serve the client examples using a simple HTTP server (not included in this package to keep it lightweight). Client examples are located in `docs/examples/client/`.
 
 ### 1. RPC - Remote Procedure Calls
 Simple request/response pattern with error handling.
