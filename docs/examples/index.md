@@ -1,6 +1,6 @@
 # WsMini Examples
 
-This directory contains complete examples demonstrating all the features of WsMini. Each example includes both server and client code with HTML interfaces.
+This directory contains complete examples demonstrating some of the features of WsMini. Each example includes both server and client code with HTML interfaces.
 
 ## Overview
 
