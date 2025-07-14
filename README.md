@@ -21,21 +21,17 @@ npm install wsmini
 ## Usage
 
 ### For Browser (Client-side)
-When using in a browser environment, only client classes are available:
+In browsers, use the client classes:
 
 ```javascript
 import { WSClient, WSClientRoom } from 'wsmini';
-// or specifically import the client bundle
-import { WSClient, WSClientRoom } from 'wsmini/client';
 ```
 
 ### For Node.js (Server-side)
-When using in Node.js, only server classes are available:
+In Node.js, use the server classes:
 
 ```javascript
 import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WSServerError } from 'wsmini';
-// or specifically import server classes
-import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WSServerError } from 'wsmini/server';
 ```
 
 ## Getting Started

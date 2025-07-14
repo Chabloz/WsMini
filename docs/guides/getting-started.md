@@ -15,7 +15,7 @@ npm install wsmini
 ### Setting up a Server
 
 ```javascript
-import { WSServerPubSub } from 'wsmini/server';
+import { WSServerPubSub } from 'wsmini';
 
 const wsServer = new WSServerPubSub({
   // Set your server options, e.g., port, allowed origins, max number of clients, ...
@@ -34,7 +34,7 @@ node path/to/your/server/file.js
 ### Connecting from a Browser JS Client
 
 ```javascript
-import { WSClient } from 'wsmini/client';
+import { WSClient } from 'wsmini';
 
 // Create a WebSocket client
 // If no url specified, it will be determined based on the current domain and scheme
@@ -53,7 +53,7 @@ console.log('Connection established!');
 ### Server-side RPC
 
 ```javascript
-import { WSServerPubSub, WSServerError } from 'wsmini/server';
+import { WSServerPubSub, WSServerError } from 'wsmini';
 
 const wsServer = new WSServerPubSub({ port: 8888 });
 
@@ -78,7 +78,7 @@ wsServer.start();
 ### Client-side RPC
 
 ```javascript
-import { WSClient } from 'wsmini/client';
+import { WSClient } from 'wsmini';
 
 const ws = new WSClient('ws://localhost:8888');
 await ws.connect().catch(err => {
@@ -101,7 +101,7 @@ ws.rpc('add', {n1: 3, n2: 6})
 ### Server-side PubSub
 
 ```javascript
-import { WSServerPubSub, WSServerError } from 'wsmini/server';
+import { WSServerPubSub, WSServerError } from 'wsmini';
 
 const wsServer = new WSServerPubSub({ port: 8888 });
 
@@ -142,7 +142,7 @@ wsServer.start();
 ### Client-side PubSub
 
 ```javascript
-import { WSClient } from 'wsmini/client';
+import { WSClient } from 'wsmini';
 
 const ws = new WSClient('ws://localhost:8888');
 await ws.connect().catch(err => {
