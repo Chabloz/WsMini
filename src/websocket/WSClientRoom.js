@@ -49,6 +49,10 @@ export default class WSClientRoom extends WSClient {
     return this.on(`ws:chan:${this.prefix + name}`, callback);
   }
 
+  roomOnCmd(name, cmd, callback) {
+    return this.on(`ws:chan-cmd:${cmd}:${this.prefix + name}`, callback);
+  }
+
   roomOnRooms(callback) {
     this.rpc(this.prefix + 'list').then(callback);
     return this.sub(this.prefix + 'list', callback);
@@ -84,6 +88,10 @@ class Room {
 
   onMessage(callback) {
     return this.wsClient.roomOnMessage(this.name, callback);
+  }
+
+  onCmd(cmd, callback) {
+    return this.wsClient.roomOnCmd(this.name, cmd, callback);
   }
 
   onClients(callback) {

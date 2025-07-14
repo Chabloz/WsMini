@@ -9,35 +9,40 @@ export default class WSServer {
    * Constructor for setting up the server with specific options.
    *
    * @param {Object} options - Configuration options.
-   * @param {number} [options.port=8887] - The port number to run the server on.
+   * @param {number} [options.port=443] - The port number to run the server on.
    * @param {number} [options.maxNbOfClients=1000] - Maximum number of allowed clients.
    * @param {number} [options.maxInputSize=100000] - Maximum size of input messages in bytes. (default: 100KB)
-   * @param {boolean} [options.verbose=true] - Enable or disable verbose logging.
-   * @param {string} [options.origins='http://localhost:5173'] - Allowed origins.
+   * @param {string} [options.origins='*'] - Allowed origins.
    * @param {number} [options.pingTimeout=30000] - The timeout in milliseconds for ping responses.
    * @param {Function} [options.authCallback=(token, request, wsServer) => {}] - A callback function to authenticate new clients.
    * The function receives the auth token (if specified in the last subprotocol), the request object and the WS server instance.
    * The function MUST return an object to store in client metadata or false to reject the connection.
    * For example, you can return {isAdmin: true} to store {isAdmin: true} in the client metadata.
    * Return {} if you don't need to store any additional information.
+   * @param {string} [options.logLevel='info'] - Log level: 'none', 'error', 'warn', 'info', 'debug'.
+   * @param {Object} [options.logger=null] - External logger instance (e.g., winston, pino) for logging.
    */
   constructor({
     port = 443,
     maxNbOfClients = 1000,
     maxInputSize = 100000,
-    verbose = true,
     origins = '*',
     pingTimeout = 30000,
     authCallback = (token, request, wsServer) => ({}),
+    logLevel = 'info',
+    logger = null,
   } = {}) {
     this.port = port;
     this.maxNbOfClients = maxNbOfClients;
     this.maxInputSize = maxInputSize;
-    this.verbose = verbose;
+    if (!['none', 'error', 'warn', 'info', 'debug'].includes(logLevel)) throw new Error(`Invalid log level: ${logLevel}`);
+    this.logLevel = logLevel;
+    this.logLevels = { none: 0, error: 1, warn: 2, info: 3, debug: 4 };
     this.origins = origins;
     this.pingTimeout = pingTimeout;
     this.pingInterval = null;
     this.authCallback = authCallback;
+    this.logger = logger;
     this.clients = new Map();
     this.server = null;
   }
@@ -47,7 +52,6 @@ export default class WSServer {
       port: this.port,
       origins: this.origins,
       maxNbOfClients: this.maxNbOfClients,
-      verbose: this.verbose,
     });
     this.server.on('connection', (client, request) => this.onConnection(client, request));
     this.server.on('close', () => this.close());
@@ -84,10 +88,21 @@ export default class WSServer {
     client.isAlive = true;
   }
 
-  log(message) {
-    if (!this.verbose) return;
+  log(message, level = 'info') {
+    const currentLevel = this.logLevels[this.logLevel];
+    const messageLevel = this.logLevels[level] || 0;
+
+    if (messageLevel > currentLevel) return;
+
     const date = new Date().toISOString();
-    console.log(`[WSS][${date}] ${message}`);
+    const logLevel = level.toUpperCase();
+
+    if (this.logger && typeof this.logger[level] === 'function') {
+      this.logger[level](`[WSS] ${message}`);
+    } else {
+      const consoleMethod = console[level] || console.log;
+      consoleMethod(`[WSS][${date}][${logLevel}] ${message}`);
+    }
   }
 
   onConnection(client, request) {
@@ -105,7 +120,7 @@ export default class WSServer {
     try {
       var customMetadata = this.authCallback(token, request, this);
     } catch (e) {
-      this.log(e.name + ': ' + e.message);
+      this.log(e.name + ': ' + e.message, 'error');
       return false;
     }
 
@@ -139,14 +154,14 @@ export default class WSServer {
   }
 
   onError(client, error) {
-    this.log(`Client ${this.clients.get(client)?.id} error: ${error?.message}`);
+    this.log(`Client ${this.clients.get(client)?.id} error: ${error?.message}`, 'error');
     client.close();
   }
 
   onMessage(client, message) {
     message = message.toString();
     if (message.length > this.maxInputSize) {
-      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`);
+      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`, 'warn');
       client.close();
       return;
     }

@@ -23,12 +23,6 @@ export default class WebSocketServerOrigin extends WebSocketServer {
     }
   }
 
-  log(message) {
-    if (!this.options?.verbose) return;
-    const date = new Date().toISOString();
-    console.log(`[WSS][${date}] ${message}`);
-  }
-
   handleUpgrade(request, socket, head, callback) {
     // Validate origin
     if (!this.checkOrigin(request.headers?.origin)) {
@@ -38,7 +32,6 @@ export default class WebSocketServerOrigin extends WebSocketServer {
     }
     // Check if server is full
     if (this.clients.size >= this.options.maxNbOfClients) {
-      this.log('Server is full');
       socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
       socket.destroy();
       return;

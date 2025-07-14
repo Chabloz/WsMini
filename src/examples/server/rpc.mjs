@@ -7,6 +7,9 @@ const wsServer = new WSServerPubSub({
 });
 
 wsServer.addRpc('add', (data) => {
+  // Validate the input data
+  // You can throw an WSServerError to reject the RPC call
+  // It will be sent back to the client and the client will receive it as a rejected promise
   if (typeof data?.n1 != 'number' || isNaN(data?.n1)) {
     throw new WSServerError('n1 must be a number');
   }
@@ -17,3 +20,8 @@ wsServer.addRpc('add', (data) => {
 });
 
 wsServer.start();
+
+// You can also send commands to the clients
+// This will send a command 'foo' to all connected clients every 5 seconds
+// The clients can listen to this command using wsClient.onCmd('foo', callback)
+setInterval(() => wsServer.broadcastCmd('foo', {foo: 'bar'}), 5000);

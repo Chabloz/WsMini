@@ -108,7 +108,7 @@ export default class WSServerPubSub extends WSServer {
   onMessage(client, message) {
     message = message.toString();
     if (message.length > this.maxInputSize) {
-      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`);
+      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`, 'warn');
       client.close();
       return false;
     }
@@ -189,7 +189,7 @@ export default class WSServerPubSub extends WSServer {
       try {
         var dataToSend = chan.hookPub(data.msg, this.clients.get(client), this);
       } catch (e) {
-        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
         const response = e instanceof WSServerError ? e.message : 'Server error';
         return this.sendPubError(client, data.id, data.chan, response);
       }
@@ -206,7 +206,7 @@ export default class WSServerPubSub extends WSServer {
       try {
         dataToSend = chan.hookPub(data.msg, this.clients.get(client), this);
       } catch (e) {
-        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
         return false;
       }
       return this.pub(data.chan, dataToSend);
@@ -234,7 +234,7 @@ export default class WSServerPubSub extends WSServer {
     try {
       response = rpc(data.data, this.clients.get(client), client, this);
     } catch (e) {
-      if (!(e instanceof WSServerError)) this.log(e.name +': ' + e.message);
+      if (!(e instanceof WSServerError)) this.log(e.name +': ' + e.message, 'error');
       const response = e instanceof WSServerError ? e.message : 'Server error';
       return this.sendRpcError(client, data.id, data.name, response);
     }
@@ -337,6 +337,20 @@ export default class WSServerPubSub extends WSServer {
 
   sendAuthSuccess(client) {
     this.sendJson(client, {action: 'auth-success'});
+  }
+
+  sendCmd(client, cmd, data = {}) {
+    this.sendJson(client, {action: 'cmd', cmd, data});
+  }
+
+  broadcastCmd(cmd, data = {}) {
+    const message = JSON.stringify({action: 'cmd', cmd, data});
+    this.broadcast(message);
+  }
+
+  broadcastOthersCmd(client, cmd, data = {}) {
+    const message = JSON.stringify({action: 'cmd', cmd, data});
+    this.broadcastOthers(client, message);
   }
 
   sendJson(client, data) {

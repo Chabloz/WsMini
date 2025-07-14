@@ -44,13 +44,12 @@ export default class WSClient {
     if (token != null && typeof token != 'string') {
       return Promise.reject(new Error('The auth token must be a string.'));
     }
-    const subprotocols = ['im.pubsub'];
+    const subprotocols = ['ws.mini'];
     if (typeof token === 'string') {
       subprotocols.push(bytesBase64Encode(token));
     }
 
     this.wsClient = new WebSocket(this.url, subprotocols);
-
     this.wsClient.addEventListener('message', (event) => this.onMessage(event));
 
     return new Promise((resolve, reject) => {
@@ -106,6 +105,11 @@ export default class WSClient {
       return;
     }
 
+    if (data.action === 'pub-cmd') {
+      this.emit(`ws:chan-cmd:${data.msg.cmd}:${data.chan}`, data.msg.data);
+      return;
+    }
+
     if (data.action === 'rpc') {
       this.emit(`ws:rpc:${data.name}`, {
         response: data.response,
@@ -128,6 +132,11 @@ export default class WSClient {
 
     if (data.action === 'auth-success') {
       this.emit('ws:auth:sucess');
+      return;
+    }
+
+    if (data.action === 'cmd') {
+      this.emit(`ws:cmd:${data.cmd}`, data.data);
       return;
     }
   }
@@ -202,6 +211,14 @@ export default class WSClient {
     });
   }
 
+  /**
+   * Publish a message to a channel without timeout management or error handling
+   *
+   * @param {string} chan - The channel name.
+   * @param {object} msg - The message to publish.
+   * @example
+   * wsClient.pubSimple('chat', {message: 'Hello, World!'});
+   */
   pubSimple(chan, msg) {
     const id = this.pubId++;
     this.wsClient.send(JSON.stringify({action: 'pub-simple', chan, id, msg}));
@@ -291,6 +308,10 @@ export default class WSClient {
     }
 
     return Promise.resolve('Unsubscribed');
+  }
+
+  onCmd(cmd, callback) {
+    return this.on(`ws:cmd:${cmd}`, callback);
   }
 
 }

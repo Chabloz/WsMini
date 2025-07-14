@@ -68,6 +68,7 @@ function showRoom(room) {
   lobbyDom.classList.add('hidden');
   room.onMessage(onRoomMessage);
   room.onClients(onClients);
+  room.onCmd('foo', (data) => console.log('Received foo cmd from server:', data));
   chatInput.focus();
 }
 

@@ -7,6 +7,7 @@ const wsServer = new WSServerRoomManager({
   origins: '*',
   maxUsersByRoom: 10,
   roomClass: class extends WSServerRoom {
+
     onMsg(msg, clientMeta, client) {
       return {
         time: Date.now(),
@@ -14,9 +15,28 @@ const wsServer = new WSServerRoomManager({
         msg,
       };
     }
+
     onSendClient(clientMeta) {
       return { user: 'Anon. ' + clientMeta.id.slice(0, 4) };
     }
+
+    onCreate(name, msg = null, clientMeta = null, client = null) {
+      // This is a bot that sends a cmd to the created room every 5 seconds
+      this.timer = setInterval(() => this.broadcastCmd('foo', { foo: 'bar' }), 5000);
+      // and another one that send messages every 2 seconds
+      this.timer2 = setInterval(() => this.broadcast({
+        time: Date.now(),
+        user: 'Bot',
+        msg: "I'm a bot, I send a message every 10 seconds",
+      }), 10000);
+    }
+
+    onDispose() {
+      // Clear the timer when the room is deleted
+      clearInterval(this.timer);
+      clearInterval(this.timer2);
+    }
+
   },
 });
 

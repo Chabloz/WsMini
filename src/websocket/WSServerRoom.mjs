@@ -56,6 +56,18 @@ export default class WSServerRoom {
       this.wsServer.broadcastRoomName(this.name, msg);
     }
 
+    broadcastCmd(cmd, data) {
+      this.wsServer.broadcastRoomNameCmd(this.name, cmd, data);
+    }
+
+    send(client, msg) {
+      this.wsServer.sendRoomName(this.name, client, msg);
+    }
+
+    sendCmd(client, cmd, data) {
+      this.wsServer.sendRoomNameCmd(this.name, client, cmd, data);
+    }
+
     static onSendRoomsList(rooms) {
       return rooms;
     }

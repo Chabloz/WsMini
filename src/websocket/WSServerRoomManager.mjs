@@ -30,14 +30,14 @@ export default class WSServerRoomManager extends WSServerPubSub {
     port = 8887,
     maxNbOfClients = 1000,
     maxInputSize = 100000, // 100kb
-    verbose = true,
-    origins = 'http://localhost:5173',
+    logLevel = 'info',
+    origins = '*',
     pingTimeout = 30000,
-    authCallback = (headers, wsServer) => {},
+    authCallback = (token, request, wsServer) => ({}),
   } = {}) {
     if (!roomClass.prototype instanceof WSServerRoom) throw new Error('Invalid room class');
 
-    super({ port, maxNbOfClients, maxInputSize, verbose, origins, pingTimeout, authCallback });
+    super({ port, maxNbOfClients, maxInputSize, logLevel, origins, pingTimeout, authCallback });
 
     this.maxUsersByRoom = maxUsersByRoom;
 
@@ -57,10 +57,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     if (syncMode === null) syncMode = isGameRoom ? 'patch' : 'immediate';
     if (!this.syncModes.includes(syncMode)) throw new Error('Invalid sync mode');
     if (isGameRoom && syncMode !== 'patch') throw new Error('Invalid sync mode for game room, must be "patch"');
-
-
     this.syncMode = syncMode;
-
     if (this.syncMode === 'patch' && !(this.roomClass.prototype instanceof WSServerGameRoom)) {
       throw new Error("Room class for 'patch' mode must be an instance of WSServerGameRoom");
     }
@@ -125,7 +122,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       try {
         var msg = room.manager[toCall](data.msg, clientMeta, client);
       } catch (e) {
-        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
         const response = e instanceof WSServerError ? e.message : 'Server error';
         return this.sendError(client, response);
       }
@@ -173,7 +170,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     try {
       var meta = room.manager.onJoin(data.msg, clientMeta, client);
     } catch (e) {
-      if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+      if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
       const response = e instanceof WSServerError ? e.message : 'Server error';
       throw new WSServerError(response);
     }
@@ -190,7 +187,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       roomMeta = room.manager.onSendRoom();
       if (typeof roomMeta !== 'object') roomMeta = {};
     } catch (e) {
-      this.log(e.name + ': ' + e.message);
+      this.log(e.name + ': ' + e.message, 'error');
     }
     const response = { name: room.name, meta: roomMeta };
     if (this.usersCanGetRoomUsers) response.clients = this.prepareRoomClients(room);
@@ -210,7 +207,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     try {
       var meta = roomInstance.onCreate(data.name, data.msg, clientMeta, client);
     } catch (e) {
-      if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+      if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
       const response = e instanceof WSServerError ? e.message : 'Server error';
       throw new WSServerError(response);
     }
@@ -229,7 +226,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       try {
         var metaUser = room.manager.onJoin(data.msg, clientMeta, client);
       } catch (e) {
-        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
         const response = e instanceof WSServerError ? e.message : 'Server error';
         this.deleteRoom(roomName);
         throw new WSServerError(response);
@@ -250,7 +247,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       roomMeta = room.manager.onSendRoom(room.meta);
       if (typeof roomMeta !== 'object') roomMeta = {};
     } catch (e) {
-      this.log(e.name + ': ' + e.message);
+      this.log(e.name + ': ' + e.message, 'error');
     }
 
     this.pubRoomList();
@@ -306,7 +303,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     try {
       room.manager.onLeave(clientMeta, client);
     } catch (e) {
-      this.log(e.name + ': ' + e.message);
+      this.log(e.name + ': ' + e.message, 'error');
     }
     if (clientMeta) this.log('Client ' + clientMeta.id + ' left room ' + roomName);
     chan.clients.delete(client);
@@ -345,7 +342,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       try {
         meta = managerInstance.onCreate(roomName, null, null, null);
       } catch (e) {
-        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message);
+        if (!(e instanceof WSServerError)) this.log(e.name + ': ' + e.message, 'error');
         meta = false;
       }
       if (meta === false) {
@@ -389,11 +386,19 @@ export default class WSServerRoomManager extends WSServerPubSub {
     super.close();
   }
 
-  prepareBroadcastMessage(room, msg) {
+  preparePubMessage(room, msg) {
     return JSON.stringify({
       action: 'pub',
       chan: this.prefix + room.name,
       msg
+    });
+  }
+
+  preparePubCmd(room, cmd, data = {}) {
+    return JSON.stringify({
+      action: 'pub-cmd',
+      chan: this.prefix + room.name,
+      msg : { cmd, data }
     });
   }
 
@@ -404,7 +409,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       try {
         meta = room.manager.onSendRoom(room.meta);
         if (typeof meta !== 'object') meta = {};
-      } catch (e) { this.log(e.name + ': ' + e.message); }
+      } catch (e) { this.log(e.name + ': ' + e.message, 'error'); }
 
       rooms.push({
         name: room.name,
@@ -417,7 +422,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     try {
       const roomsListHook = this.roomClass.onSendRoomsList(rooms);
       if (Array.isArray(roomsListHook)) rooms = roomsListHook;
-    } catch (e) { this.log(e.name + ': ' + e.message); }
+    } catch (e) { this.log(e.name + ': ' + e.message, 'error'); }
 
     return rooms;
   }
@@ -434,7 +439,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
       try {
         clientMeta = room.manager.onSendClient(this.clients.get(client));
         if (typeof clientMeta !== 'object') clientMeta = {};
-      } catch (e) { this.log(e.name + ': ' + e.message); }
+      } catch (e) { this.log(e.name + ': ' + e.message, 'error'); }
       clients.push(clientMeta);
     }
     return clients;
@@ -445,6 +450,18 @@ export default class WSServerRoomManager extends WSServerPubSub {
     return this.pub(this.prefix + room.name + '-clients', clients);
   }
 
+  sendRoomName(roomName, client, msg) {
+    if (!this.rooms.has(roomName)) return false;
+    const room = this.rooms.get(roomName);
+    this.sendRoom(room, client, msg);
+  }
+
+  sendRoom(room, client, msg) {
+    if (!room.chan.clients.has(client)) return false;
+    const message = this.preparePubMessage(room, msg);
+    return this.send(client, message);
+  }
+
   broadcastRoomName(roomName, msg) {
     if (!this.rooms.has(roomName)) return false;
     const room = this.rooms.get(roomName);
@@ -452,15 +469,50 @@ export default class WSServerRoomManager extends WSServerPubSub {
   }
 
   broadcastRoom(room, msg) {
-    const message = this.prepareBroadcastMessage(room, msg);
-    for (const other of room.chan.clients) {
-      this.send(other, message);
+    const message = this.preparePubMessage(room, msg);
+    for (const client of room.chan.clients) {
+      this.send(client, message);
     }
     return true;
   }
 
   broadcastOtherRoom(room, msg, client) {
-    const message = this.prepareBroadcastMessage(room, msg);
+    const message = this.preparePubMessage(room, msg);
+    for (const other of room.chan.clients) {
+      if (other === client) continue;
+      this.send(other, message);
+    }
+    return true;
+  }
+
+  sendRoomNameCmd(roomName, client, cmd, data = {}) {
+    if (!this.rooms.has(roomName)) return false;
+    const room = this.rooms.get(roomName);
+    this.sendRoomCmd(room, client, cmd, data);
+  }
+
+  sendRoomCmd(room, client, cmd, data = {}) {
+    if (!room.chan.clients.has(client)) return false;
+    const message = this.preparePubCmd(room, cmd, data);
+    return this.send(client, message);
+  }
+
+  broadcastRoomNameCmd(roomName, cmd, data = {}) {
+    if (!this.rooms.has(roomName)) return false;
+    const room = this.rooms.get(roomName);
+    return this.broadcastRoomCmd(room, cmd, data);
+  }
+
+  broadcastRoomCmd(room, cmd, data = {}) {
+    const message = this.preparePubCmd(room, cmd, data);
+    for (const client of room.chan.clients) {
+      this.send(client, message);
+    }
+    return true;
+  }
+
+  broadcastRoomCmdOther(room, cmd, data = {}, client) {
+    const message = this.preparePubCmd(room, cmd, data);
     for (const other of room.chan.clients) {
       if (other === client) continue;
       this.send(other, message);
