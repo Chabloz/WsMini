@@ -18,13 +18,29 @@ Minimalist WebSocket client and server for real-time applications with RPC, PubS
 npm install wsmini
 ```
 
+## Usage
+
+### For Browser (Client-side)
+When using in a browser environment, only client classes are available:
+
+```javascript
+import { WSClient, WSClientRoom } from 'wsmini/client';
+```
+
+### For Node.js (Server-side)
+When using in Node.js, only server classes are available:
+
+```javascript
+import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WSServerError } from 'wsmini/server';
+```
+
 ## Examples
 
 ### Running the Examples
 To run the examples, you need to have Node.js installed. You can run the server examples using the following command:
 
 ```bash
-node src/examples/server/games.mjs
+node docs/examples/server/games.mjs
 ```
 
 Then, serve the client examples using a simple HTTP server (not included in this package to keep it lightweight). Client examples are located in `src/examples/client/`.
@@ -32,7 +48,7 @@ Then, serve the client examples using a simple HTTP server (not included in this
 ### 1. RPC - Remote Procedure Calls
 Simple request/response pattern with error handling.
 
-Complete server example located in [src/examples/server/rpc.mjs](src/examples/server/rpc.mjs).
+Complete server example located in [docs/examples/server/rpc.mjs](docs/examples/server/rpc.mjs).
 ```js
 import { WSServerPubSub, WSServerError } from 'wsmini';
 const wsServer = new WSServerPubSub({ port: 8888 });
@@ -44,7 +60,7 @@ wsServer.addRpc('add', (data) => {
 wsServer.start();
 ```
 
-Complete client example located in [src/examples/client/rpc.js](src/examples/client/rpc.js).
+Complete client example located in [docs/examples/client/rpc.js](docs/examples/client/rpc.js).
 ```javascript
 import { WSClient } from 'wsmini';
 const ws = new WSClient('ws://localhost:8888');
@@ -56,7 +72,7 @@ console.log(result);
 ### 2. PubSub - Channel Based Messaging
 Subscribe to channels and broadcast messages.
 
-Complete server example located in [src/examples/server/chat.mjs](src/examples/server/chat.mjs).
+Complete server example located in [docs/examples/server/chat.mjs](docs/examples/server/chat.mjs).
 ```javascript
 import { WSServerPubSub } from 'wsmini';
 const wsServer = new WSServerPubSub({ port: 8887 });
@@ -70,7 +86,7 @@ wsServer.addChannel('chat', {
 wsServer.start();
 ```
 
-Complete client example located in [src/examples/client/chat.js](src/examples/client/chat.js).
+Complete client example located in [docs/examples/client/chat.js](docs/examples/client/chat.js).
 ```javascript
 import { WSClient } from 'wsmini';
 const ws = new WSClient('ws://localhost:8887');
@@ -82,7 +98,7 @@ ws.pub('chat', 'Hello everyone!');
 ### 3. Room Management
 Create/join rooms with built-in message handling.
 
-Complete server example located in [src/examples/server/room.mjs](src/examples/server/rooms.mjs).
+Complete server example located in [docs/examples/server/room.mjs](docs/examples/server/rooms.mjs).
 ```javascript
 import { WSServerRoomManager, WSServerRoom } from 'wsmini';
 const wsServer = new WSServerRoomManager({
@@ -99,7 +115,7 @@ const wsServer = new WSServerRoomManager({
 });
 ```
 
-Complete client example located in [src/examples/client/rooms.js](src/examples/client/rooms.js).
+Complete client example located in [docs/examples/client/rooms.js](docs/examples/client/rooms.js).
 ```javascript
 import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('ws://localhost:8889');
@@ -113,7 +129,7 @@ room1.send('Hello room 1!');
 - Register custom commands and patches.
 - Game list and player list synchronization.
 
-Complete server example located in [src/examples/server/games.mjs](src/examples/server/games.mjs).
+Complete server example located in [docs/examples/server/games.mjs](docs/examples/server/games.mjs).
 ```javascript
 import { WSServerRoomManager, WSServerGameRoom } from 'wsmini';
 
@@ -163,7 +179,8 @@ const wsServer = new WSServerRoomManager({
 wsServer.start();
 ```
 
-complete client example located in [src/examples/client/games.js](src/examples/client/games.js).
+complete client example located in [docs/examples/client/games.js](docs/examples/client/games.js).
+And a client with interpolation located in [docs/examples/client/gamesWithInterpolation.js](docs/examples/client/gamesWithInterpolation.js).
 ```javascript
 import { WSClientRoom } from 'wsmini';
 const ws = new WSClientRoom('wss://localhost');
