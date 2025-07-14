@@ -91,7 +91,7 @@ const meteo = await ws.rpc('getMeteo', { location: 'London' });
 console.log(`Weather in ${meteo.location}: ${meteo.temperature}°C, ${meteo.condition}`);
 
 // Or with error handling
-ws.rpc('add', {n1: 3, n2: 6})
+ws.rpc('add', {n1: 3, n2: 'a'}) // The promise will reject with an error because n2 is not a number
   .then(response => console.log(`Result: ${response}`))
   .catch(err => console.error('RPC Error:', err.message));
 ```
