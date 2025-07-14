@@ -149,7 +149,7 @@ export default class WSClient {
    * @param {number} [timeout=5000] - The timeout in milliseconds.
    * @returns {Promise} - A promise that resolves with the response or rejects if an error occurs.
    * @example
-   * await wsClient.rpc('get-user', {id: 1}).catch(console.error);
+   * const user = await wsClient.rpc('get-user', {id: 1}).catch(console.error);
    */
   rpc(name, data = {}, timeout = this.defaultTimeout) {
     return new Promise((resolve, reject) => {
@@ -232,7 +232,7 @@ export default class WSClient {
    * @param {number} [timeout=5000] - The timeout in milliseconds.
    * @returns {Promise} - A promise that resolves when the subscription is established or rejects if an error occurs.
    * @example
-   * const unsub = wsClient.sub('chat', (msg) => console.log(msg));
+   * wsClient.sub('chat', (msg) => console.log(msg));
    */
   sub(chan, callback, timeout = this.defaultTimeout) {
     if (!this.hasListener(`ws:chan:${chan}`)) {
@@ -310,6 +310,18 @@ export default class WSClient {
     return Promise.resolve('Unsubscribed');
   }
 
+  /**
+   * Register a callback for server commands.
+   *
+   * @param {string} cmd - The command name to listen for.
+   * @param {function} callback - The callback function to execute when the command is received.
+   * @returns {function} - Returns a function for removing the command listener.
+   * @example
+   * wsClient.onCmd('notification', (data) => {
+   *   console.log('Received notification:', data);
+   * });
+   *
+   */
   onCmd(cmd, callback) {
     return this.on(`ws:cmd:${cmd}`, callback);
   }

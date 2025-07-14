@@ -2,6 +2,7 @@ import WSClient from './WSClient.js';
 
 export default class WSClientRoom extends WSClient {
   prefix = '__room-';
+  unregisterCmdListener = new Map();
 
   roomCreateOrJoin(name = null, data = {}, timeout = this.defaultTimeout) {
     return this._roomAction('createOrJoin', name, data, timeout);
@@ -35,6 +36,10 @@ export default class WSClientRoom extends WSClient {
   _roomOff(name) {
     this.clear(`ws:chan:${this.prefix + name}`);
     this.clear(`ws:chan:${this.prefix + name}-clients`);
+    // Clean up command listeners for this room
+    if (!this.unregisterCmdListener.has(name)) return;
+    for (const removeListener of this.unregisterCmdListener.get(name)) removeListener();
+    this.unregisterCmdListener.delete(name);
   }
 
   roomSend(name, data = {}) {
@@ -50,7 +55,13 @@ export default class WSClientRoom extends WSClient {
   }
 
   roomOnCmd(name, cmd, callback) {
-    return this.on(`ws:chan-cmd:${cmd}:${this.prefix + name}`, callback);
+    const eventName = `ws:chan-cmd:${cmd}:${this.prefix + name}`;
+    const removeListener = this.on(eventName, callback);
+
+    if (!this.unregisterCmdListener.has(name)) this.unregisterCmdListener.set(name, []);
+    this.unregisterCmdListener.get(name).push(removeListener);
+
+    return removeListener;
   }
 
   roomOnRooms(callback) {
