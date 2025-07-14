@@ -16,7 +16,7 @@ Minimalist WebSocket client and server for real-time applications with RPC, PubS
 
 For a detailed guide on how to get started with WsMini, including setting up a server, connecting clients, and using RPC and PubSub features, please refer to the [Getting Started Guide](./docs/guides/getting-started.md).
 
-## documentation
+## Documentation
 
 Documentation is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization: [docs](./docs/index.md).
 
