@@ -106,7 +106,7 @@ const wsServer = new WSServerRoomManager({
       // You can change the tick rate if you want
       // this.setSimulationPerSec(60); //60 is the default (~16.6666ms)
       // and the patch rate (the rate for sending the world state to the clients)
-      // this.setPatchPerSec(20); //20 is the default (50ms)
+      this.setPatchPerSec(60); // 20 is the default (50ms), but we put it to 60 to have a smoother experience with the "game with no interpolation" example
       this.startMainLoop();
     }
 

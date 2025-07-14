@@ -37,9 +37,21 @@ createForm.querySelector('button').classList.remove('hidden');
 let room = null;
 
 /*
-  This will store the game World state (sent by the server)
+  This constant will store the game World state and the last World state
+  to interpolate the player positions between each patch from the server.
+  The delay is the same as the server's patch rate to have a smooth rendering.
+
+  You are not forced to interpolate, you can just draw the player positions
+  But if you do not, you should patch the world at a high rate (for example 60 per second)
+  to have a smooth rendering (see the server code for more details)
+  In this example we patch the world at 20 patch per second (50ms the default value)
 */
-let world = false;
+const game = {
+  prevWorld: null,
+  curWorld: null,
+  lastUpdateTime: 0,
+  delay: 1000/60  // [ms], must be the same as server's patch rate
+};
 
 /*
   The following is nearly the same as the rooms example
@@ -127,11 +139,10 @@ function joinOrCreateRoom(evt, roomName) {
 function showRoom(theRoom) {
   room = theRoom;
   roomName.textContent = room.name;
-  // Switch to the room view (game area)
   roomDom.classList.remove('hidden');
   lobbyDom.classList.add('hidden');
   // The server will send the world state at the patch rate (see the server code for more details)
-  room.onMessage(newWorld => world = newWorld);
+  room.onMessage(updateWorld);
   // The server will send the client list when a user is joining or leaving the room (or is disconnected)
   room.onClients(onClients);
 }
@@ -142,6 +153,64 @@ function onClients(users) {
   for (const data of users) {
     usersListDom.insertAdjacentHTML('beforeend', `<a-user>${data.user}</a-user>`);
   }
+}
+
+/*
+  We store two world states to interpolate the player positions between each patch from the server.
+  This way we can store the previous world state and the current world state without any reference between them.
+  We store the timestamp of the current world state to calculate the delta time between each tick.
+*/
+function updateWorld(world) {
+  game.prevWorld = game.curWorld;
+  game.curWorld = world;
+  game.lastUpdateTime = performance.now();
+}
+
+/*
+  We use a simple linear interpolation to smooth the player positions
+*/
+function lerp(start, end, t) {
+  return start + (end - start) * t;
+}
+
+/*
+  Clamp a value between a min and a max
+  We need to normalize the interpolation progress between 0 and 1
+*/
+function clamp(val, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, val));
+}
+
+/*
+  This returns the interpolated world state.
+  If there is no previous world state, we return the current world state.
+  (Nothing to interpolate at the first frame)
+*/
+function getInterpolatedWorld() {
+  if (!game.prevWorld) return game.curWorld;
+
+  // We calculate the progress (between 0 and 1) of the interpolation
+  const now = performance.now();
+  const dt = now - game.lastUpdateTime;
+  const progress = clamp(dt / game.delay);
+
+  return {
+    ...game.curWorld,
+    // On this small example we only interpolate the player positions
+    players: game.curWorld.players.map((_, ind) => getInterpolatedPlayer(ind, progress)),
+  };
+}
+
+function getInterpolatedPlayer(ind, progress) {
+  const player = game.curWorld.players[ind];
+  const prevPlayer = game.prevWorld.players[ind];
+  return {
+    ...player,
+    // Only position is interpolated,
+    // but on a real game you should interpolate the angle and other properties
+    x: lerp(prevPlayer.x, player.x, progress),
+    y: lerp(prevPlayer.y, player.y, progress)
+  };
 }
 
 /*
@@ -177,16 +246,19 @@ function drawPlayer(player) {
 
 /*
  Main draw loop
+ We does not calculate the delta time because we interpolate the player positions.
+ To see a very good explanation of the anatomy of a game loop, see: https://www.isaacsukin.com/news/2015/01/detailed-explanation-javascript-game-loops-and-timing
+ You'll find the "real" game loop in the WSServerGameRoom class.
 */
 function draw() {
   requestAnimationFrame(draw);
-  if (!world) return;
+  if (!game?.curWorld) return;
 
-  // Clear the canvas responsivly
+  // Clear the canvas, this is better than clearRect because it is responsive
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
-  for (const player of world.players) {
+  for (const player of getInterpolatedWorld().players) {
     drawPlayer(player);
   }
 }
