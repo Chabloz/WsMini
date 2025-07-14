@@ -138,37 +138,12 @@ room.send('Hello room!');
 Demonstrates:
 - Real-time multiplayer game mechanics
 - Fixed timestep game loop
-- Player movement and collision
+- Player movement
 - Game state synchronization
 
 **Advanced Client**: [`client/gamesWithInterpolation.html`](./client/gamesWithInterpolation.html) + [`client/gamesWithInterpolation.js`](./client/gamesWithInterpolation.js)
 
 Shows client-side interpolation for smooth movement.
-
-
-```javascript
-// Server
-class Player {
-  constructor(x, y, angle, color) {
-    this.x = x;
-    this.y = y;
-    this.angle = angle;
-    this.color = color;
-  }
-
-  tick(dt) {
-    // Update player position based on movement state
-  }
-}
-
-// Client
-document.addEventListener('keydown', e => {
-  if (e.code === 'ArrowUp') game.sendCmd('moveF', true);
-  if (e.code === 'ArrowDown') game.sendCmd('moveB', true);
-  if (e.code === 'ArrowLeft') game.sendCmd('rotL', true);
-  if (e.code === 'ArrowRight') game.sendCmd('rotR', true);
-});
-```
 
 ## File Structure
 
