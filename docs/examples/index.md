@@ -17,19 +17,30 @@ The examples showcase:
 - A simple HTTP server to serve client files (like `python -m http.server` or VS Code Live Server)
 
 ### Steps
-1. **Start a server example**:
+1. **Clone or fork the repository**:
+   ```bash
+   # Clone the repository
+   git clone https://github.com/Chabloz/WsMini.git
+   cd WsMini
+   
+   # Or fork it first on GitHub, then clone your fork
+   git clone https://github.com/YOUR-USERNAME/WsMini.git
+   cd WsMini
+   ```
+
+2. **Start a server example**:
    ```bash
    node docs/examples/server/rpc.mjs
    ```
 
-2. **Serve the client files**:
+3. **Serve the client files**:
    ```bash
    # From the docs/examples/client directory
    python -m http.server 8080
    # or use VS Code Live Server extension
    ```
 
-3. **Open the corresponding HTML file** in your browser
+4. **Open the corresponding HTML file** in your browser
 
 ## Examples
 
