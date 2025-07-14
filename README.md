@@ -12,6 +12,10 @@ Minimalist WebSocket client and server for real-time applications with RPC, PubS
 - 🏠 Room-based management system
 - 🎮 Game-ready with fixed timestep game loop and state synchronization
 
+## Getting Started
+
+For a detailed guide on how to get started with WsMini, including setting up a server, connecting clients, and using RPC and PubSub features, please refer to the [Getting Started Guide](./docs/guides/getting-started.md). The full documentation is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization: [docs](./docs/index.md).
+
 ## Installation
 
 ```bash
@@ -33,10 +37,6 @@ In Node.js, use the server classes:
 ```javascript
 import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WSServerError } from 'wsmini';
 ```
-
-## Getting Started
-
-For a detailed guide on how to get started with WsMini, including setting up a server, connecting clients, and using RPC and PubSub features, please refer to the [Getting Started Guide](./docs/guides/getting-started.md). The full documentation is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization: [docs](./docs/index.md).
 
 ## Examples
 
