@@ -6,7 +6,7 @@ The `WSClientRoom` class extends [`WSClient`](./WSClient.md) to provide room-bas
 
 - [Constructor](#constructor)
 - [Room Management](#room-management)
-  - [roomCreateOrJoin](##roomcreateorjoinname-data-timeout)
+  - [roomCreateOrJoin](#roomcreateorjoinname-data-timeout)
   - [roomCreate](#roomcreatename-data-timeout)
   - [roomJoin](#roomjoinname-data-timeout)
   - [roomLeave](#roomleavename-timeout)

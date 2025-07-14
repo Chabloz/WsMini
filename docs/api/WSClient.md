@@ -5,8 +5,6 @@ The `WSClient` class provides a WebSocket client for real-time communication wit
 
 ## Table of Contents
 
-## Table of Contents
-
 - [Constructor](#constructor)
 - [Connection Management](#connection-management)
   - [connect](#connecttoken)
