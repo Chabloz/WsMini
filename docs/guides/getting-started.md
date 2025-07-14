@@ -167,5 +167,4 @@ ws.pub('meteo', 'This will not work');
 
 ## Next Steps
 
-Now that you understand the basics, you can explore more advanced features by looking at the [Examples](../examples/index.md) section.
-There, you'll find complete examples for RPC, PubSub, Room management, Game state synchronization, and more.
+Now that you understand the basics, you can explore more advanced features by looking at the [Examples](../examples/index.md) section or reading the rest of the [documentation](../index.md).
