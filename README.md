@@ -18,7 +18,7 @@ For a detailed guide on how to get started with WsMini, including setting up a s
 
 ## Documentation
 
-Documentation is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization: [docs](./docs/index.md).
+[Documentation](./docs/index.md) is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization.
 
 ## Installation
 
