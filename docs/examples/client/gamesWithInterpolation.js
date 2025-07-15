@@ -44,7 +44,7 @@ let room = null;
   You are not forced to interpolate, you can just draw the player positions
   But if you do not, you should patch the world at a high rate (for example 60 per second)
   to have a smooth rendering (see the server code for more details)
-  In this example we patch the world at 20 patch per second (50ms the default value)
+  In this example we patch the world at 60 patch per second (see the server code for more details)
 */
 const game = {
   prevWorld: null,
