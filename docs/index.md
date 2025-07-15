@@ -11,8 +11,16 @@ Welcome to the documentation for WsMini, a lightweight WebSocket library for rea
 
 ### API Reference
 
+#### Client API
+
 - [WSClient](./api/WSClient.md) - Core WebSocket client for RPC, PubSub, and server commands
 - [WSClientRoom](./api/WSClientRoom.md) - Room-based WebSocket client extending WSClient
+
+#### Server API
+
+- [WSServerPubSub](./api/WSServerPubSub.md) - WebSocket server with PubSub/RPC capabilities
+- [WSServerRoomManager](./api/WSServerRoomManager.md) - Room-based WebSocket server extending WSServerPubSub
+- [WSServerGameRoom](./api/WSServerGameRoom.md) - Game room with fixed timestep loop and state synchronization
 
 ## License
 

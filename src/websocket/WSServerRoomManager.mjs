@@ -27,17 +27,18 @@ export default class WSServerRoomManager extends WSServerPubSub {
 
     syncMode = null,
 
-    port = 8887,
+    port = 443,
     maxNbOfClients = 1000,
     maxInputSize = 100000, // 100kb
-    logLevel = 'info',
     origins = '*',
     pingTimeout = 30000,
     authCallback = (token, request, wsServer) => ({}),
+    logLevel = 'info',
+    logger = null,
   } = {}) {
     if (!roomClass.prototype instanceof WSServerRoom) throw new Error('Invalid room class');
 
-    super({ port, maxNbOfClients, maxInputSize, logLevel, origins, pingTimeout, authCallback });
+    super({ port, maxNbOfClients, maxInputSize, origins, pingTimeout, authCallback, logLevel, logger });
 
     this.maxUsersByRoom = maxUsersByRoom;
 

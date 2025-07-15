@@ -1,6 +1,6 @@
 # WSClientRoom API Documentation
 
-The `WSClientRoom` class extends [`WSClient`](./WSClient.md) to provide room-based functionality for WebSocket communication. It allows clients to create, join, and manage rooms with dedicated messaging and command systems.
+The `WSClientRoom` class extends [`WSClient`](./WSClient.md) to provide room-based functionality for WebSocket communication. It allows clients to create, join, and manage rooms with dedicated messaging and command systems. It's better to read the documentation for [`WSClient`](./WSClient.md) first to understand the basic WebSocket client features.
 
 ## Table of Contents
 

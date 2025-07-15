@@ -22,7 +22,7 @@ The examples showcase:
    # Clone the repository
    git clone https://github.com/Chabloz/WsMini.git
    cd WsMini
-   
+
    # Or fork it first on GitHub, then clone your fork
    git clone https://github.com/YOUR-USERNAME/WsMini.git
    cd WsMini
@@ -79,14 +79,9 @@ const result = await ws.rpc('add', {n1: 5, n2: 3});
 
 Demonstrates:
 - Channel-based messaging
-- Authentication with tokens
+- User metadata handling
 - Message transformation hooks
 - Real-time chat interface
-
-**Features**:
-- User authentication with tokens (a fake token for demo)
-- Message timestamps and user colors
-- Bot messages every 5 seconds
 
 ```javascript
 // Server
