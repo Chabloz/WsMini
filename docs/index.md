@@ -1,6 +1,9 @@
 # WsMini Documentation
 
-Welcome to the documentation for WsMini, a lightweight WebSocket library for real-time applications with RPC, PubSub, Rooms and Game state synchronization.
+Welcome to the documentation for WsMini, a lightweight WebSocket library for real-time applications with RPC, PubSub, Rooms and Game state synchronization. WsMini is designed for small web games and real-time applications with a focus on simplicity and ease of use:
+
+- **Authentication & Security**: Supports token transmission during handshake and basic WebSocket security. User accounts, rate limiting, and additional security checks should be handled by your application
+- **Scalability**: Targeted for small to medium applications, scaling features are outside the scope
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
