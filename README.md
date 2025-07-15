@@ -20,6 +20,13 @@ For a detailed guide on how to get started with WsMini, including setting up a s
 
 [Documentation](./docs/index.md) is available in the `docs` directory and includes examples for both client and server usage, as well as advanced features like Room management and Game state synchronization.
 
+## Scope & Use Cases
+
+WsMini is designed for **small web games and real-time applications** with a focus on simplicity and ease of use:
+
+- **Authentication & Security**: Supports token transmission during handshake and basic WebSocket security. User accounts, rate limiting, and additional security checks should be handled by your application
+- **Scalability**: Targeted for small to medium applications, scaling features are outside the scope
+
 ## Installation
 
 ```bash
