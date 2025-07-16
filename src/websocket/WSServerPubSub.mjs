@@ -137,7 +137,7 @@ export default class WSServerPubSub extends WSServer {
       return this.sendError(client, 'Invalid chan');
     }
 
-    if (typeof data?.id !== 'number') {
+    if (data.action !== 'pub-simple' && typeof data?.id !== 'number') {
       return this.sendError(client, 'Invalid id or id is missing');
     }
 
