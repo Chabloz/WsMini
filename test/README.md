@@ -1,0 +1,265 @@
+# WsMini Test Suite
+
+This directory contains unit and integration tests
+
+## Test Structure
+
+```
+test/
+├── helpers/
+│   └── testUtils.mjs          # Test utilities and helper functions
+├── websocket/
+│   ├── WSClient.test.mjs      # Unit tests for WSClient browser class
+│   ├── WSClientRoom.test.mjs  # Unit tests for WSClientRoom browser class
+│   ├── WSServer.test.mjs      # Unit tests for WSServer base class
+│   ├── WSServer.integration.test.mjs  # Integration tests for WSServer
+│   ├── WSClientServer.integration.test.mjs  # Client-Server integration tests
+│   ├── WSServerPubSub.test.mjs        # Unit tests for WSServerPubSub
+│   ├── WSServerRoomManager.test.mjs   # Unit tests for WSServerRoomManager
+│   └── WSServerGameRoom.test.mjs      # Unit tests for WSServerGameRoom
+├── setup.mjs                  # Global test setup
+└── README.md                  # This file
+```
+
+## Running Tests
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Run All Tests
+
+```bash
+npm test
+```
+
+### Run Tests in Watch Mode
+
+```bash
+npm run test:watch
+```
+
+### Run Tests with Coverage
+
+```bash
+npm run test:coverage
+```
+
+## Test Categories
+
+### Client Tests (`WSClient.test.mjs`)
+
+Tests the browser WebSocket client functionality:
+
+- **Constructor**: Tests client creation with URL and timeout configuration
+- **Connection Management**: Tests WebSocket connection with/without authentication tokens
+- **Message Handling**: Tests processing of different message types (pub, sub, rpc, cmd, error)
+- **RPC Functionality**: Tests remote procedure calls with success/error/timeout scenarios
+- **Pub/Sub Functionality**: Tests publishing and subscribing to channels
+- **Command Handling**: Tests command registration and callback management
+- **Edge Cases**: Tests malformed messages, unknown actions, and rapid operations
+
+### Client Room Tests (`WSClientRoom.test.mjs`)
+
+Tests the room-based browser WebSocket client functionality:
+
+- **Constructor**: Tests WSClientRoom inheritance and initialization
+- **Room Actions**: Tests room creation, joining, and leaving operations
+- **Room Communication**: Tests sending messages and commands to rooms
+- **Room Event Listeners**: Tests message, command, and client list listeners
+- **Room Class**: Tests the Room helper class functionality
+- **Cleanup**: Tests proper resource cleanup when leaving rooms
+- **Error Handling**: Tests error responses for room operations
+
+### Unit Tests (`WSServer.test.mjs`)
+
+Tests individual methods and functionality of the WSServer base class in isolation:
+
+- **Constructor**: Tests default and custom configuration options
+- **Logging**: Tests logging functionality with different levels and external loggers
+- **Client Management**: Tests client metadata creation, retrieval, and management
+- **Broadcasting**: Tests message broadcasting to all clients or specific subsets
+- **Authentication**: Tests auth success/failure message sending
+- **Message Processing**: Tests message validation and processing
+- **Ping Management**: Tests ping/pong mechanism for client liveness
+- **Error Handling**: Tests error handling and client disconnection
+- **Server Lifecycle**: Tests server startup and shutdown
+
+### Integration Tests (`WSServer.integration.test.mjs`)
+
+Tests the WSServer class in more realistic scenarios:
+
+- **Server Connection Lifecycle**: Tests client connections, authentication flow
+- **Message Flow**: Tests actual message broadcasting between clients
+- **Ping/Pong Mechanism**: Tests the keepalive mechanism in realistic scenarios
+
+### Client-Server Integration Tests (`WSClientServer.integration.test.mjs`)
+
+Tests real communication between WSClient/WSClientRoom and WSServerRoomManager:
+
+- **Connection Management**: Tests client connection to actual server with authentication
+- **Room Operations**: Tests room creation, joining, and messaging with real server
+- **Message Flow**: Tests sending and receiving messages through rooms
+- **RPC Communication**: Tests remote procedure calls between client and server
+- **Pub/Sub Operations**: Tests publish/subscribe messaging between client and server
+- **Real WebSocket**: Uses actual WebSocket connections (not mocks) for end-to-end testing
+
+### PubSub Tests (`WSServerPubSub.test.mjs`)
+
+Tests the publish-subscribe functionality extending WSServer:
+
+- **Constructor**: Tests PubSub server creation and inheritance
+- **Channel Management**: Tests channel creation, validation, and removal
+- **RPC Management**: Tests RPC endpoint registration and removal
+- **Action Validation**: Tests message action validation for PubSub and RPC
+- **Message Processing**: Tests subscription, publication, and RPC message handling
+- **Client Cleanup**: Tests automatic cleanup when clients disconnect
+- **Publishing Methods**: Tests direct publishing to channels
+
+### Room Manager Tests (`WSServerRoomManager.test.mjs`)
+
+Tests the room-based WebSocket server functionality:
+
+- **Constructor**: Tests room manager creation with different configurations
+- **Room Management**: Tests room creation, deletion, and metadata management
+- **Client Management**: Tests adding/removing clients from rooms
+- **Room Messages**: Tests `pub-room` and `pub-room-cmd` message handling
+- **Room Broadcasting**: Tests various broadcasting methods (all clients, others, specific clients)
+- **Message Validation**: Tests validation of room messages and commands
+- **Error Handling**: Tests error responses for invalid messages
+
+### Game Room Tests (`WSServerGameRoom.test.mjs`)
+
+Tests the game loop and real-time functionality extending WSServerRoom:
+
+- **Constructor**: Tests game room creation with timing configurations
+- **Simulation Configuration**: Tests FPS, timestep, and patch rate settings
+- **Main Loop Control**: Tests starting/stopping the game loop
+- **Callback Registration**: Tests callback system (regular, throttled, timeout)
+- **Game Loop Mechanics**: Tests fixed timestep execution and performance monitoring
+- **Patch System**: Tests world state broadcasting and throttling
+- **Timing & Callbacks**: Tests precise timing control and callback execution
+- **Game State Management**: Tests elapsed time tracking and state updates
+- **Performance Monitoring**: Tests frame timing and update limiting
+- **Cleanup & Disposal**: Tests proper resource cleanup
+- **Edge Cases**: Tests robustness with extreme configurations
+
+## Test Utilities
+
+The `testUtils.mjs` file provides helper functions for:
+
+- Creating mock WebSocket clients
+- Creating mock HTTP requests
+- Creating mock loggers
+- Waiting for async operations
+- Common assertions for server state
+
+### Client Test Setup
+
+Client tests use additional mocking infrastructure:
+
+- **JSDOM**: Provides browser environment simulation with `window`, `document`, and `location` globals
+- **MockWebSocket**: Custom WebSocket implementation for testing browser client functionality
+- **TextEncoder/TextDecoder**: String encoding utilities for browser compatibility
+- **Base64 utilities**: `btoa`/`atob` functions for authentication token encoding
+
+## Coverage
+
+The test suite provides comprehensive coverage of all WebSocket components:
+
+### WSClient Browser Class
+- ✅ Connection management with authentication
+- ✅ Message processing and event handling
+- ✅ RPC calls with timeout and error handling
+- ✅ Pub/Sub operations and channel management
+- ✅ Command registration and callback system
+- ✅ Edge cases and error scenarios
+
+### WSClientRoom Browser Class
+- ✅ Room creation, joining, and leaving
+- ✅ Room-based message and command sending
+- ✅ Event listeners for room updates
+- ✅ Room helper class functionality
+- ✅ Resource cleanup and error handling
+
+### WSServer Base Class
+- ✅ All public methods and configuration options
+- ✅ Error conditions and edge cases
+- ✅ Client lifecycle management
+- ✅ Message processing and broadcasting
+- ✅ Authentication flows
+- ✅ Ping/pong mechanism
+
+### WSServerPubSub
+- ✅ Channel and RPC management
+- ✅ Subscription and publication flows
+- ✅ Message validation and processing
+- ✅ Client cleanup and unsubscription
+- ✅ Direct publishing methods
+
+### WSServerRoomManager
+- ✅ Room creation and management
+- ✅ Client-to-room assignment
+- ✅ Room-based message broadcasting
+- ✅ Command processing and validation
+- ✅ Error handling and edge cases
+
+### WSServerGameRoom
+- ✅ Game loop timing and execution
+- ✅ Callback registration and management
+- ✅ Performance monitoring and panic handling
+- ✅ World state patching and broadcasting
+- ✅ Resource cleanup and disposal
+
+**Total Test Count**: 211 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 130+ server tests)
+
+## Test Design Principles
+
+1. **Isolation**: Each test is independent and doesn't rely on external services
+2. **Mocking**: External dependencies are mocked to focus on the unit under test
+3. **Clarity**: Test names clearly describe what is being tested
+4. **Completeness**: Both happy path and error scenarios are covered
+5. **Maintainability**: Tests are organized and use helper functions to avoid duplication
+
+## Adding New Tests
+
+When adding new tests:
+
+1. Follow the existing naming convention (`describe` → `it`)
+2. Use the helper functions from `testUtils.mjs`
+3. Clean up resources in `afterEach` hooks
+4. Test both success and failure scenarios
+5. Use descriptive test names that explain the expected behavior
+
+## Debugging Tests
+
+To debug failing tests:
+
+1. **Run specific test files**:
+   - `npx mocha test/websocket/WSClient.test.mjs`
+   - `npx mocha test/websocket/WSClientRoom.test.mjs`
+   - `npx mocha test/websocket/WSClientServer.integration.test.mjs`
+   - `npx mocha test/websocket/WSServer.test.mjs`
+   - `npx mocha test/websocket/WSServerPubSub.test.mjs`
+   - `npx mocha test/websocket/WSServerRoomManager.test.mjs`
+   - `npx mocha test/websocket/WSServerGameRoom.test.mjs`
+2. **Run specific test suites**: Use `--grep` to filter tests
+   - `npx mocha test/**/*.test.mjs --grep "Connection Management"`
+   - `npx mocha test/**/*.test.mjs --grep "Room Management"`
+   - `npx mocha test/**/*.test.mjs --grep "Pub/Sub"`
+   - `npx mocha test/**/*.test.mjs --grep "Integration Tests"`
+3. Use `console.log` in tests (temporarily)
+4. Check the test output for specific assertion failures
+5. Verify mock expectations are being met
+6. For client tests, check browser environment mocking (JSDOM, WebSocket mocks)
+7. For game room tests, check timing-related issues with fake timers
+
+## Dependencies
+
+- **Mocha**: Test framework
+- **Chai**: Assertion library
+- **Sinon**: Mocking and spying library
+- **JSDOM**: Browser environment simulation for client tests
+- **c8**: Code coverage tool

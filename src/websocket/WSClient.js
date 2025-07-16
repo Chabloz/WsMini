@@ -53,7 +53,7 @@ export default class WSClient {
     this.wsClient.addEventListener('message', (event) => this.onMessage(event));
 
     return new Promise((resolve, reject) => {
-      this.once('ws:auth:sucess', () => resolve());
+      this.once('ws:auth:success', () => resolve());
       this.once('ws:auth:failed', () => reject(new Error('WS auth failed')));
       this.wsClient.addEventListener('error', () => reject(new Error('WS connection error')));
       this.wsClient.addEventListener('close', () => {
@@ -131,7 +131,7 @@ export default class WSClient {
     }
 
     if (data.action === 'auth-success') {
-      this.emit('ws:auth:sucess');
+      this.emit('ws:auth:success');
       return;
     }
 

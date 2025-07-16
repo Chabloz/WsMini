@@ -16,13 +16,22 @@
     "./client": "./src/browser.js",
     "./server": "./src/node.js"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "c8": "^10.1.2",
+    "chai": "^4.4.1",
+    "jsdom": "^26.1.0",
+    "mocha": "^10.7.3",
+    "sinon": "^18.0.0",
+    "sinon-chai": "^3.7.0"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
   "type": "module",
   "scripts": {
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "mocha test/**/*.test.mjs",
+    "test:watch": "mocha test/**/*.test.mjs --watch",
+    "test:coverage": "c8 mocha test/**/*.test.mjs"
   },
   "repository": {
     "type": "git",

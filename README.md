@@ -53,3 +53,22 @@ import { WSServerPubSub, WSServerRoomManager, WSServerRoom, WSServerGameRoom, WS
 ## Examples
 
 You will find complete examples demonstrating some of the features of WsMini in the `docs/examples` directory. Each example includes both server and client code with HTML interfaces. For more details, see the [Examples Documentation](./docs/examples/index.md).
+
+## Testing
+
+WsMini includes a comprehensive test suite with 130+ tests covering all components and features.
+
+### Running Tests
+
+```bash
+# Install dependencies
+npm install
+# Run all tests
+npm test
+# Run tests with coverage
+npm run test:coverage
+# Run tests in watch mode
+npm run test:watch
+```
+
+For detailed testing information, see the [Test Documentation](./test/README.md).

@@ -1,0 +1,8 @@
+{
+  "timeout": 5000,
+  "recursive": true,
+  "reporter": "spec",
+  "require": ["./test/setup.mjs"],
+  "spec": ["test/**/*.test.mjs"],
+  "exit": true
+}

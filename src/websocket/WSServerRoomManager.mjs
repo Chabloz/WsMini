@@ -454,7 +454,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
   sendRoomName(roomName, client, msg) {
     if (!this.rooms.has(roomName)) return false;
     const room = this.rooms.get(roomName);
-    this.sendRoom(room, client, msg);
+    return this.sendRoom(room, client, msg);
   }
 
   sendRoom(room, client, msg) {
@@ -489,7 +489,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
   sendRoomNameCmd(roomName, client, cmd, data = {}) {
     if (!this.rooms.has(roomName)) return false;
     const room = this.rooms.get(roomName);
-    this.sendRoomCmd(room, client, cmd, data);
+    return this.sendRoomCmd(room, client, cmd, data);
   }
 
   sendRoomCmd(room, client, cmd, data = {}) {
