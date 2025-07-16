@@ -16,7 +16,9 @@ test/
 │   ├── WSClientServer.integration.test.mjs  # Client-Server integration tests
 │   ├── WSServerPubSub.test.mjs        # Unit tests for WSServerPubSub
 │   ├── WSServerRoomManager.test.mjs   # Unit tests for WSServerRoomManager
-│   └── WSServerGameRoom.test.mjs      # Unit tests for WSServerGameRoom
+│   ├── WSServerGameRoom.test.mjs      # Unit tests for WSServerGameRoom
+│   ├── WebSocketServerOrigin.test.mjs # Unit tests for WebSocketServerOrigin
+│   └── WSServerError.test.mjs         # Unit tests for WSServerError
 ├── setup.mjs                  # Global test setup
 └── README.md                  # This file
 ```
@@ -146,6 +148,30 @@ Tests the game loop and real-time functionality extending WSServerRoom:
 - **Cleanup & Disposal**: Tests proper resource cleanup
 - **Edge Cases**: Tests robustness with extreme configurations
 
+### WebSocket Server Origin Tests (`WebSocketServerOrigin.test.mjs`)
+
+Tests the WebSocket server origin validation and client limit functionality:
+
+- **Constructor**: Tests server creation with origin validation and client limits
+- **Option Validation**: Tests error handling for missing/invalid origins and maxNbOfClients
+- **Origin Validation**: Tests the checkOrigin method with various origin formats
+- **Protocol Handling**: Tests protocol stripping for flexible origin matching
+- **Port Handling**: Tests port stripping for flexible origin matching
+- **Wildcard Support**: Tests wildcard origin matching
+- **Client Limit Enforcement**: Tests handleUpgrade method with client capacity limits
+- **Error Responses**: Tests proper HTTP error responses for invalid origins and full server
+
+### WSServer Error Tests (`WSServerError.test.mjs`)
+
+Tests the custom WSServerError class:
+
+- **Constructor**: Tests error creation with various message types
+- **Error Properties**: Tests inheritance from Error class and proper properties
+- **Stack Traces**: Tests error stack trace generation
+- **Throwability**: Tests error throwing and catching behavior
+- **Error Comparison**: Tests distinguishing from other error types
+- **Serialization**: Tests error serialization and string conversion
+
 ## Test Utilities
 
 The `testUtils.mjs` file provides helper functions for:
@@ -213,7 +239,21 @@ The test suite provides comprehensive coverage of all WebSocket components:
 - ✅ World state patching and broadcasting
 - ✅ Resource cleanup and disposal
 
-**Total Test Count**: 211 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 130+ server tests)
+### WebSocketServerOrigin
+- ✅ Origin validation and protocol handling
+- ✅ Client limit enforcement
+- ✅ Configuration validation and error handling
+- ✅ HTTP upgrade request processing
+- ✅ Wildcard and flexible origin matching
+
+### WSServerError
+- ✅ Custom error class functionality
+- ✅ Error inheritance and properties
+- ✅ Stack trace generation
+- ✅ Error throwing and catching
+- ✅ Error serialization and comparison
+
+**Total Test Count**: 273 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 130+ server tests, 41 origin tests, 17 error tests)
 
 ## Test Design Principles
 
@@ -245,6 +285,8 @@ To debug failing tests:
    - `npx mocha test/websocket/WSServerPubSub.test.mjs`
    - `npx mocha test/websocket/WSServerRoomManager.test.mjs`
    - `npx mocha test/websocket/WSServerGameRoom.test.mjs`
+   - `npx mocha test/websocket/WebSocketServerOrigin.test.mjs`
+   - `npx mocha test/websocket/WSServerError.test.mjs`
 2. **Run specific test suites**: Use `--grep` to filter tests
    - `npx mocha test/**/*.test.mjs --grep "Connection Management"`
    - `npx mocha test/**/*.test.mjs --grep "Room Management"`
