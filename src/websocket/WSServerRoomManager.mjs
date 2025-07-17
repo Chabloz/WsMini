@@ -19,7 +19,7 @@ export default class WSServerRoomManager extends WSServerPubSub {
     usersCanListRooms = true,
     usersCanGetRoomUsers = true,
 
-    roomClass = WSServerRoom,
+    roomClass = class extends WSServerRoom {},
 
     autoJoinCreatedRoom = true,
     autoDeleteEmptyRoom = true,

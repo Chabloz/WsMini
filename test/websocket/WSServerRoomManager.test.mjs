@@ -51,7 +51,7 @@ describe('WSServerRoomManager', () => {
       expect(server.usersCanNameRoom).to.be.true;
       expect(server.usersCanListRooms).to.be.true;
       expect(server.usersCanGetRoomUsers).to.be.true;
-      expect(server.roomClass).to.equal(WSServerRoom);
+      expect(server.roomClass.prototype).to.be.instanceof(WSServerRoom);
       expect(server.autoJoinCreatedRoom).to.be.true;
       expect(server.autoDeleteEmptyRoom).to.be.true;
       expect(server.autoSendRoomListOnUsersChange).to.be.true;

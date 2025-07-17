@@ -60,7 +60,7 @@ For the details of the `roomClass` option, see the documentation of the [Room Cl
   - `usersCanNameRoom` (boolean, optional): Whether users can name rooms. Default: `true`
   - `usersCanListRooms` (boolean, optional): Whether users can list rooms. Default: `true`
   - `usersCanGetRoomUsers` (boolean, optional): Whether users can get room user lists. Default: `true`
-  - `roomClass` (class, optional): Custom room class extending `WSServerRoom`. Default: `WSServerRoom`
+  - `roomClass` (class, optional): Custom room class extending `WSServerRoom`. Default: `class extends WSServerRoom {}`
   - `autoJoinCreatedRoom` (boolean, optional): Whether room creators automatically join. Default: `true`
   - `autoDeleteEmptyRoom` (boolean, optional): Whether empty rooms are automatically deleted. Default: `true`
   - `autoSendRoomListOnUsersChange` (boolean, optional): Whether to send room list updates on user changes. Default: `true`
