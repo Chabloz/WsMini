@@ -5,7 +5,7 @@ Welcome to the documentation for WsMini, a lightweight WebSocket library for rea
 - **Authentication & Security**: Supports token transmission during handshake and basic WebSocket security. User accounts, rate limiting, and additional security checks should be handled by your application
 - **Scalability**: Targeted for small to medium applications, scaling features are outside the scope
 
-[![npm version](https://badge.fury.io/js/wsmini.svg?t=3)](https://badge.fury.io/js/wsmini)
+[![npm version](https://img.shields.io/npm/v/wsmini.svg)](https://www.npmjs.com/package/wsmini)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Security Considerations
