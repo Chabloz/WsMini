@@ -95,7 +95,7 @@ Tests the WSServer class in more realistic scenarios:
 
 - **Server Connection Lifecycle**: Tests client connections, authentication flow
 - **Message Flow**: Tests actual message broadcasting between clients
-- **Ping/Pong Mechanism**: Tests the keepalive mechanism in realistic scenarios
+- **Ping/Pong Mechanism**: Tests the keepalive mechanism
 
 ### Client-Server Integration Tests (`WSClientServer.integration.test.mjs`)
 
@@ -119,6 +119,12 @@ Tests the publish-subscribe functionality extending WSServer:
 - **Message Processing**: Tests subscription, publication, and RPC message handling
 - **Client Cleanup**: Tests automatic cleanup when clients disconnect
 - **Publishing Methods**: Tests direct publishing to channels
+- **Authentication Methods**: Tests sendAuthFailed and sendAuthSuccess functionality
+- **Command Methods**: Tests sendCmd, broadcastCmd, and broadcastOthersCmd
+- **Pub-Simple Action**: Tests pub-simple message handling with success and error cases
+- **RPC Error Handling**: Tests RPC error scenarios with WSServerError and generic errors
+- **Pub Action Error Handling**: Tests publication error scenarios
+- **Additional Edge Cases**: Tests oversized messages, invalid data, and various error conditions
 
 ### Room Manager Tests (`WSServerRoomManager.test.mjs`)
 
@@ -131,6 +137,10 @@ Tests the room-based WebSocket server functionality:
 - **Room Broadcasting**: Tests various broadcasting methods (all clients, others, specific clients)
 - **Message Validation**: Tests validation of room messages and commands
 - **Error Handling**: Tests error responses for invalid messages
+- **Client Cleanup on Close**: Tests client removal from all rooms on disconnect
+- **Server Cleanup**: Tests room cleanup when server closes
+- **Room Messaging by Name**: Tests sendRoomName and sendRoom methods for individual client messaging
+- **Room Commands by Name**: Tests sendRoomNameCmd and sendRoomCmd methods for individual client commands
 
 ### Game Room Tests (`WSServerGameRoom.test.mjs`)
 
@@ -193,7 +203,19 @@ Client tests use additional mocking infrastructure:
 
 ## Coverage
 
-The test suite provides comprehensive coverage of all WebSocket components:
+The test suite provides comprehensive coverage of all WebSocket components with **93.3% overall statement coverage**:
+
+### Coverage Summary
+- **All files**: 93.3% statements, 89.93% branches, 92.77% functions, 93.3% lines
+- **WebSocketServerOrigin**: 100% coverage (41 comprehensive tests)
+- **WSServerError**: 100% coverage (17 tests covering all error scenarios)
+- **WSServerPubSub**: 95.55% coverage (extensive authentication, command, and error handling tests)
+- **WSServerRoomManager**: 82.5% coverage (room management, cleanup, and messaging tests)
+- **WSServer**: 99.05% coverage (comprehensive base functionality tests)
+- **WSClient**: 98.78% coverage (browser client functionality tests)
+- **WSClientRoom**: 100% coverage (room-based client functionality tests)
+- **WSServerGameRoom**: 96.81% coverage (game loop and timing tests)
+- **WSServerRoom**: 87.5% coverage (room base class tests)
 
 ### WSClient Browser Class
 - ✅ Connection management with authentication
@@ -224,6 +246,11 @@ The test suite provides comprehensive coverage of all WebSocket components:
 - ✅ Message validation and processing
 - ✅ Client cleanup and unsubscription
 - ✅ Direct publishing methods
+- ✅ Authentication methods (sendAuthFailed, sendAuthSuccess)
+- ✅ Command methods (sendCmd, broadcastCmd, broadcastOthersCmd)
+- ✅ Pub-simple action handling with success and error cases
+- ✅ RPC error handling scenarios
+- ✅ Comprehensive error handling and edge cases
 
 ### WSServerRoomManager
 - ✅ Room creation and management
@@ -231,6 +258,11 @@ The test suite provides comprehensive coverage of all WebSocket components:
 - ✅ Room-based message broadcasting
 - ✅ Command processing and validation
 - ✅ Error handling and edge cases
+- ✅ Client cleanup on disconnect
+- ✅ Server cleanup and resource management
+- ✅ Room messaging by name (sendRoomName, sendRoom)
+- ✅ Room commands by name (sendRoomNameCmd, sendRoomCmd)
+- ✅ Individual client messaging within rooms
 
 ### WSServerGameRoom
 - ✅ Game loop timing and execution
@@ -253,50 +285,7 @@ The test suite provides comprehensive coverage of all WebSocket components:
 - ✅ Error throwing and catching
 - ✅ Error serialization and comparison
 
-**Total Test Count**: 273 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 130+ server tests, 41 origin tests, 17 error tests)
-
-## Test Design Principles
-
-1. **Isolation**: Each test is independent and doesn't rely on external services
-2. **Mocking**: External dependencies are mocked to focus on the unit under test
-3. **Clarity**: Test names clearly describe what is being tested
-4. **Completeness**: Both happy path and error scenarios are covered
-5. **Maintainability**: Tests are organized and use helper functions to avoid duplication
-
-## Adding New Tests
-
-When adding new tests:
-
-1. Follow the existing naming convention (`describe` → `it`)
-2. Use the helper functions from `testUtils.mjs`
-3. Clean up resources in `afterEach` hooks
-4. Test both success and failure scenarios
-5. Use descriptive test names that explain the expected behavior
-
-## Debugging Tests
-
-To debug failing tests:
-
-1. **Run specific test files**:
-   - `npx mocha test/websocket/WSClient.test.mjs`
-   - `npx mocha test/websocket/WSClientRoom.test.mjs`
-   - `npx mocha test/websocket/WSClientServer.integration.test.mjs`
-   - `npx mocha test/websocket/WSServer.test.mjs`
-   - `npx mocha test/websocket/WSServerPubSub.test.mjs`
-   - `npx mocha test/websocket/WSServerRoomManager.test.mjs`
-   - `npx mocha test/websocket/WSServerGameRoom.test.mjs`
-   - `npx mocha test/websocket/WebSocketServerOrigin.test.mjs`
-   - `npx mocha test/websocket/WSServerError.test.mjs`
-2. **Run specific test suites**: Use `--grep` to filter tests
-   - `npx mocha test/**/*.test.mjs --grep "Connection Management"`
-   - `npx mocha test/**/*.test.mjs --grep "Room Management"`
-   - `npx mocha test/**/*.test.mjs --grep "Pub/Sub"`
-   - `npx mocha test/**/*.test.mjs --grep "Integration Tests"`
-3. Use `console.log` in tests (temporarily)
-4. Check the test output for specific assertion failures
-5. Verify mock expectations are being met
-6. For client tests, check browser environment mocking (JSDOM, WebSocket mocks)
-7. For game room tests, check timing-related issues with fake timers
+**Total Test Count**: 300 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
 
 ## Dependencies
 
