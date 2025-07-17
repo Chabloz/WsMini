@@ -12,6 +12,7 @@ Welcome to the documentation for WsMini, a lightweight WebSocket library for rea
 
 - [Getting Started](./guides/getting-started.md)
 - [Examples](./examples/index.md)
+- [Test Suite](../test/README.md)
 
 ### API Reference
 
