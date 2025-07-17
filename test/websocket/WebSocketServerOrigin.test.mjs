@@ -224,11 +224,6 @@ describe('WebSocketServerOrigin', () => {
     });
 
     it('should return true for exact origin match', () => {
-      console.log('Server origins:', server.options.origins);
-      console.log('Test 1:', server.checkOrigin('http://localhost:3000'));
-      console.log('Test 2:', server.checkOrigin('https://example.com'));
-      console.log('Test 3:', server.checkOrigin('http://localhost:8080'));
-
       expect(server.checkOrigin('http://localhost:3000')).to.be.true;
       expect(server.checkOrigin('https://example.com')).to.be.true;
       expect(server.checkOrigin('http://localhost:8080')).to.be.true;
