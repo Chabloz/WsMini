@@ -516,4 +516,246 @@ describe('WSServerRoomManager', () => {
       expect(result).to.be.false;
     });
   });
+
+  describe('Client Cleanup on Close', () => {
+    it('should remove client from all rooms when client disconnects', () => {
+      const client = createMockClient();
+      const clientMeta = { id: 'test-client' };
+      server.clients.set(client, clientMeta);
+
+      // Create multiple rooms and add client to them
+      server.createRoom('room1');
+      server.createRoom('room2');
+      server.addClientToRoom('room1', clientMeta, client);
+      server.addClientToRoom('room2', clientMeta, client);
+
+      // Verify client is in both rooms
+      expect(server.getClientsOfRoom('room1')).to.have.length(1);
+      expect(server.getClientsOfRoom('room2')).to.have.length(1);
+
+      // Simulate client disconnect
+      server.onClose(client);
+
+      // Verify client is removed from both rooms
+      expect(server.getClientsOfRoom('room1')).to.have.length(0);
+      expect(server.getClientsOfRoom('room2')).to.have.length(0);
+    });
+
+    it('should handle client disconnect when client is not in any rooms', () => {
+      const client = createMockClient();
+      const clientMeta = { id: 'test-client' };
+      server.clients.set(client, clientMeta);
+
+      // Should not throw error
+      expect(() => server.onClose(client)).to.not.throw();
+    });
+  });
+
+  describe('Server Cleanup', () => {
+    it('should clear all rooms when server closes', () => {
+      server.createRoom('room1');
+      server.createRoom('room2');
+
+      expect(server.rooms.size).to.equal(2);
+
+      server.close();
+
+      expect(server.rooms.size).to.equal(0);
+    });
+  });
+
+  describe('Room Messaging by Name', () => {
+    let client1, client2, room;
+
+    beforeEach(() => {
+      client1 = createMockClient();
+      client2 = createMockClient();
+      const clientMeta1 = { id: 'client1' };
+      const clientMeta2 = { id: 'client2' };
+      server.clients.set(client1, clientMeta1);
+      server.clients.set(client2, clientMeta2);
+
+      server.createRoom('test-room');
+      room = server.rooms.get('test-room');
+      server.addClientToRoom('test-room', clientMeta1, client1);
+      server.addClientToRoom('test-room', clientMeta2, client2);
+
+      // Reset spy calls after room setup
+      client1.send.resetHistory();
+      client2.send.resetHistory();
+    });
+
+    it('should send message to specific client by room name', () => {
+      const message = { content: 'Hello client1' };
+
+      const result = server.sendRoomName('test-room', client1, message);
+      expect(result).to.be.true;
+
+      expect(client1.send.called).to.be.true;
+      expect(client2.send.called).to.be.false;
+
+      const sentMessage = JSON.parse(client1.send.firstCall.args[0]);
+      expect(sentMessage).to.deep.equal({
+        action: 'pub',
+        chan: '__room-test-room',
+        msg: message
+      });
+    });
+
+    it('should return false when sending to non-existent room', () => {
+      const message = { content: 'Hello' };
+
+      const result = server.sendRoomName('non-existent-room', client1, message);
+      expect(result).to.be.false;
+    });
+
+    it('should return false when sending to client not in room', () => {
+      const otherClient = createMockClient();
+      const message = { content: 'Hello' };
+
+      const result = server.sendRoomName('test-room', otherClient, message);
+      expect(result).to.be.false;
+    });
+
+    it('should send message to specific client using room object', () => {
+      const message = { content: 'Hello client2' };
+
+      const result = server.sendRoom(room, client2, message);
+      expect(result).to.be.true;
+
+      expect(client1.send.called).to.be.false;
+      expect(client2.send.called).to.be.true;
+
+      const sentMessage = JSON.parse(client2.send.firstCall.args[0]);
+      expect(sentMessage).to.deep.equal({
+        action: 'pub',
+        chan: '__room-test-room',
+        msg: message
+      });
+    });
+
+    it('should return false when sending to client not in room using room object', () => {
+      const otherClient = createMockClient();
+      const message = { content: 'Hello' };
+
+      const result = server.sendRoom(room, otherClient, message);
+      expect(result).to.be.false;
+    });
+  });
+
+  describe('Room Commands by Name', () => {
+    let client1, client2, room;
+
+    beforeEach(() => {
+      client1 = createMockClient();
+      client2 = createMockClient();
+      const clientMeta1 = { id: 'client1' };
+      const clientMeta2 = { id: 'client2' };
+      server.clients.set(client1, clientMeta1);
+      server.clients.set(client2, clientMeta2);
+
+      server.createRoom('test-room');
+      room = server.rooms.get('test-room');
+      server.addClientToRoom('test-room', clientMeta1, client1);
+      server.addClientToRoom('test-room', clientMeta2, client2);
+
+      // Reset spy calls after room setup
+      client1.send.resetHistory();
+      client2.send.resetHistory();
+    });
+
+    it('should send command to specific client by room name', () => {
+      const cmd = 'move';
+      const data = { x: 10, y: 20 };
+
+      const result = server.sendRoomNameCmd('test-room', client1, cmd, data);
+      expect(result).to.be.true;
+
+      expect(client1.send.called).to.be.true;
+      expect(client2.send.called).to.be.false;
+
+      const sentMessage = JSON.parse(client1.send.firstCall.args[0]);
+      expect(sentMessage).to.deep.equal({
+        action: 'pub-cmd',
+        chan: '__room-test-room',
+        msg: { cmd, data }
+      });
+    });
+
+    it('should send command with empty data by room name', () => {
+      const cmd = 'reset';
+
+      const result = server.sendRoomNameCmd('test-room', client1, cmd);
+      expect(result).to.be.true;
+
+      expect(client1.send.called).to.be.true;
+
+      const sentMessage = JSON.parse(client1.send.firstCall.args[0]);
+      expect(sentMessage).to.deep.equal({
+        action: 'pub-cmd',
+        chan: '__room-test-room',
+        msg: { cmd, data: {} }
+      });
+    });
+
+    it('should return false when sending command to non-existent room', () => {
+      const cmd = 'move';
+      const data = { x: 10, y: 20 };
+
+      const result = server.sendRoomNameCmd('non-existent-room', client1, cmd, data);
+      expect(result).to.be.false;
+    });
+
+    it('should return false when sending command to client not in room', () => {
+      const otherClient = createMockClient();
+      const cmd = 'move';
+      const data = { x: 10, y: 20 };
+
+      const result = server.sendRoomNameCmd('test-room', otherClient, cmd, data);
+      expect(result).to.be.false;
+    });
+
+    it('should send command to specific client using room object', () => {
+      const cmd = 'jump';
+      const data = { height: 5 };
+
+      const result = server.sendRoomCmd(room, client2, cmd, data);
+      expect(result).to.be.true;
+
+      expect(client1.send.called).to.be.false;
+      expect(client2.send.called).to.be.true;
+
+      const sentMessage = JSON.parse(client2.send.firstCall.args[0]);
+      expect(sentMessage).to.deep.equal({
+        action: 'pub-cmd',
+        chan: '__room-test-room',
+        msg: { cmd, data }
+      });
+    });
+
+    it('should send command with empty data using room object', () => {
+      const cmd = 'stop';
+
+      const result = server.sendRoomCmd(room, client1, cmd);
+      expect(result).to.be.true;
+
+      expect(client1.send.called).to.be.true;
+
+      const sentMessage = JSON.parse(client1.send.firstCall.args[0]);
+      expect(sentMessage).to.deep.equal({
+        action: 'pub-cmd',
+        chan: '__room-test-room',
+        msg: { cmd, data: {} }
+      });
+    });
+
+    it('should return false when sending command to client not in room using room object', () => {
+      const otherClient = createMockClient();
+      const cmd = 'move';
+      const data = { x: 10, y: 20 };
+
+      const result = server.sendRoomCmd(room, otherClient, cmd, data);
+      expect(result).to.be.false;
+    });
+  });
 });

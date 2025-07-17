@@ -460,7 +460,8 @@ export default class WSServerRoomManager extends WSServerPubSub {
   sendRoom(room, client, msg) {
     if (!room.chan.clients.has(client)) return false;
     const message = this.preparePubMessage(room, msg);
-    return this.send(client, message);
+    this.send(client, message);
+    return true;
   }
 
   broadcastRoomName(roomName, msg) {
@@ -495,7 +496,8 @@ export default class WSServerRoomManager extends WSServerPubSub {
   sendRoomCmd(room, client, cmd, data = {}) {
     if (!room.chan.clients.has(client)) return false;
     const message = this.preparePubCmd(room, cmd, data);
-    return this.send(client, message);
+    this.send(client, message);
+    return true;
   }
 
   broadcastRoomNameCmd(roomName, cmd, data = {}) {
