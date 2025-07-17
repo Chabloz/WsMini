@@ -8,6 +8,14 @@ Welcome to the documentation for WsMini, a lightweight WebSocket library for rea
 [![npm version](https://badge.fury.io/js/wsmini.svg)](https://badge.fury.io/js/wsmini)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Security Considerations
+
+WsMini provides basic security features but requires additional implementation for production use:
+
+- **Origin Validation**: The library includes origin checking capabilities to prevent unauthorized cross-origin connections. This should always be configured in production environments.
+- **Rate Limiting**: Not included in WsMini - implement rate limiting at the application or reverse proxy level to prevent abuse.
+- **Token Authentication**: Supports token transmission during WebSocket handshake. Tokens can be JWT tokens or any string format that your application uses for user authentication. Token validation logic must be implemented in your application.
+
 ## Documentation
 
 - [Getting Started](./guides/getting-started.md)
