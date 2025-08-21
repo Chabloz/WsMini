@@ -41,8 +41,6 @@ The examples showcase:
    ```
    and go to  http://localhost:8080/docs/examples/client/rpc.html for the client interface (you can change rpc.html to any other example client file).
 
-4. **Open the corresponding HTML file** in your browser
-
 ## Examples
 
 ### 1. RPC (Remote Procedure Calls)
