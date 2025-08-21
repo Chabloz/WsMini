@@ -32,13 +32,14 @@ The examples showcase:
    ```bash
    node docs/examples/server/rpc.mjs
    ```
+   You can change rpc.mjs to any other example server file.
 
 3. **Serve the client files**:
+   From the root of the repository
    ```bash
-   # From the docs/examples/client directory
-   python -m http.server 8080
-   # or use VS Code Live Server extension
+   npx serve . -p 8080
    ```
+   and go to  http://localhost:8080/docs/examples/client/rpc.html for the client interface (you can change rpc.html to any other example client file).
 
 4. **Open the corresponding HTML file** in your browser
 
