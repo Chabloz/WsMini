@@ -14,15 +14,8 @@ export default class WSServerGameRoom extends WSServerRoom {
     this.setPatchPerSec(20);
     this.lastTickTime = 0;
     this.isRunning = false;
-
-    // Those var are only relevant inside of _tick(),
-    // but a reference is held externally.
-    // This is for skipping the creation of a new variable each tick.
     this.loop = null;
-    this.callback = null;
-    this.deltaTime = 0;
     this.frameDelta = 0;
-    this.numUpdate = 0;
     this.elapsedTime = 0;
   }
 
@@ -123,27 +116,27 @@ export default class WSServerGameRoom extends WSServerRoom {
 
   _tick() {
     const now = this.hrtimeMs();
-    this.deltaTime = now - this.lastTickTime;
-    this.timeout = Math.max(0, this.timestep - this.deltaTime);
+    const deltaTime = now - this.lastTickTime;
+    this.timeout = Math.max(0, this.timestep - deltaTime);
     this.loop = setTimeout(() => this._tick(), this.timeout);
 
-    this.frameDelta += this.deltaTime;
+    this.frameDelta += deltaTime;
     this.lastTickTime = now;
 
     // Fixed simulation steps
-    this.numUpdate = 0;
-    while (this.frameDelta >= this.timestep && this.numUpdate <= this.updatePerSec) {
+    let numUpdate = 0;
+    while (this.frameDelta >= this.timestep && numUpdate <= this.updatePerSec) {
       this.elapsedTime += this.timestep;
-      for (this.callback of this.registredUpdate) {
-        this.callback(this.timestep, this.elapsedTime);
+      for (const callback of this.registredUpdate) {
+        callback(this.timestep, this.elapsedTime);
       }
       this.onTick(this.timestep, this.elapsedTime);
       this.frameDelta -= this.timestep;
-      this.numUpdate++;
+      numUpdate++;
     }
 
     // We run the update more than 1 second !
-    if (this.numUpdate > this.updatePerSec) {
+    if (numUpdate > this.updatePerSec) {
       this.wsServer.log(`Game '${this.name}' is running slow`);
       this.panic(this.frameDelta);
     }

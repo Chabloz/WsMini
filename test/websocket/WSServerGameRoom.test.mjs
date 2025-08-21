@@ -474,8 +474,9 @@ describe('WSServerGameRoom', () => {
 
       clock.tick(100);
 
-      expect(gameRoom.deltaTime).to.be.a('number');
-      expect(gameRoom.frameDelta).to.be.a('number');
+      // Verify timing is tracked by checking if ticks are executed
+      expect(gameRoom.tickCount).to.be.greaterThan(0);
+      expect(gameRoom.elapsedTime).to.be.greaterThan(0);
 
       hrtimeStub.restore();
     });
@@ -487,12 +488,14 @@ describe('WSServerGameRoom', () => {
       hrtimeStub.onCall(1).returns(2000);  // Very slow first tick
 
       gameRoom.setSimulationPerSec(1000); // Very high frequency
+      const panicSpy = sandbox.spy(gameRoom, 'panic');
       gameRoom.startMainLoop();
 
       clock.tick(100); // Small advance to trigger tick
 
-      // Should not exceed updatePerSec updates in a single frame
-      expect(gameRoom.numUpdate).to.be.at.most(gameRoom.updatePerSec);
+      // Should trigger panic when too many updates would be needed
+      expect(panicSpy.called).to.be.true;
+      expect(mockWSServer.log.called).to.be.true;
 
       hrtimeStub.restore();
     });
