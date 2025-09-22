@@ -13,8 +13,7 @@ The examples showcase:
 ## Running the Examples
 
 ### Prerequisites
-- Node.js installed
-- A simple HTTP server to serve client files (like `python -m http.server` or VS Code Live Server)
+- Node.js version >= 22.0.0 installed
 
 ### Steps
 1. **Clone or fork the repository**:
