@@ -92,7 +92,9 @@ describe('WSServer Integration Tests', () => {
 
       server.onConnection(mockClient, mockRequest);
 
-      expect(mockClient.send).to.have.been.calledWith('auth-failed');
+      expect(mockClient.send).to.have.been.calledOnce;
+      const payload = JSON.parse(mockClient.send.firstCall.args[0]);
+      expect(payload).to.deep.equal({ action: 'auth-failed' });
       expect(mockClient.close).to.have.been.called;
       expect(server.clients.size).to.equal(0);
 
@@ -132,10 +134,13 @@ describe('WSServer Integration Tests', () => {
       server.onConnection(mockClient, mockRequest);
 
       expect(authCallback).to.have.been.calledWith('valid-token');
-      expect(mockClient.send).to.have.been.calledWith('auth-success');
+      expect(mockClient.send).to.have.been.calledOnce;
+      const payload = JSON.parse(mockClient.send.firstCall.args[0]);
+      expect(payload.action).to.equal('auth-success');
       expect(server.clients.size).to.equal(1);
 
       const metadata = server.clients.get(mockClient);
+      expect(payload.id).to.equal(metadata.id);
       expect(metadata.userId).to.equal('test-user');
 
       done();

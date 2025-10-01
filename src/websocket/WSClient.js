@@ -6,6 +6,7 @@ export default class WSClient {
   pubId = 0;
   subId = 0;
   unsubId = 0;
+  clientId = null;
 
 /**
  *  A WebSocket PubSub client to interact with the WS PubSub server.
@@ -44,6 +45,7 @@ export default class WSClient {
     if (token != null && typeof token != 'string') {
       return Promise.reject(new Error('The auth token must be a string.'));
     }
+    this.clientId = null;
     const subprotocols = ['ws.mini'];
     if (typeof token === 'string') {
       subprotocols.push(bytesBase64Encode(token));
@@ -67,6 +69,7 @@ export default class WSClient {
     if (this.wsClient === null) return;
     this.wsClient.close();
     this.wsClient = null;
+    this.clientId = null;
     this.emit('close');
   }
 
@@ -131,7 +134,8 @@ export default class WSClient {
     }
 
     if (data.action === 'auth-success') {
-      this.emit('ws:auth:success');
+      this.clientId = data.id ?? null;
+      this.emit('ws:auth:success', data);
       return;
     }
 

@@ -234,10 +234,14 @@ describe('WSServer', () => {
     it('should send auth success message', () => {
       server = new WSServer();
       const client = { readyState: WebSocket.OPEN, send: sandbox.spy() };
+      const metadata = { id: 'client-id' };
+      server.clients.set(client, metadata);
 
       server.sendAuthSuccess(client);
 
-      expect(client.send).to.have.been.calledWith('auth-success');
+      expect(client.send).to.have.been.calledOnce;
+      const payload = JSON.parse(client.send.firstCall.args[0]);
+      expect(payload).to.deep.equal({ action: 'auth-success', id: metadata.id });
     });
 
     it('should send auth failed message', () => {
@@ -246,7 +250,9 @@ describe('WSServer', () => {
 
       server.sendAuthFailed(client);
 
-      expect(client.send).to.have.been.calledWith('auth-failed');
+      expect(client.send).to.have.been.calledOnce;
+      const payload = JSON.parse(client.send.firstCall.args[0]);
+      expect(payload).to.deep.equal({ action: 'auth-failed' });
     });
   });
 

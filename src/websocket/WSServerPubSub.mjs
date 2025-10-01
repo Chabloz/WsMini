@@ -336,7 +336,10 @@ export default class WSServerPubSub extends WSServer {
   }
 
   sendAuthSuccess(client) {
-    this.sendJson(client, {action: 'auth-success'});
+    this.sendJson(client, {
+      action: 'auth-success',
+      id: this.clients.get(client)?.id ?? null,
+    });
   }
 
   sendCmd(client, cmd, data = {}) {

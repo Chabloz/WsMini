@@ -197,11 +197,12 @@ export default class WSServer {
   }
 
   sendAuthFailed(client) {
-    this.send(client, 'auth-failed');
+    this.send(client, JSON.stringify({ action: 'auth-failed' }));
   }
 
   sendAuthSuccess(client) {
-    this.send(client, 'auth-success');
+    const metadata = this.clients.get(client) ?? {};
+    this.send(client, JSON.stringify({ action: 'auth-success', id: metadata.id ?? null }));
   }
 
   geClientsData() {

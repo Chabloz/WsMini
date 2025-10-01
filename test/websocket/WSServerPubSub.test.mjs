@@ -343,11 +343,12 @@ describe('WSServerPubSub', () => {
 
     it('should send auth success message', () => {
       const client = createMockClient();
+      server.clients.set(client, { id: 'client-id' });
 
       server.sendAuthSuccess(client);
 
       expect(client.send).to.have.been.calledWith(
-        JSON.stringify({ action: 'auth-success' })
+        JSON.stringify({ action: 'auth-success', id: 'client-id' })
       );
     });
   });
