@@ -2,6 +2,8 @@
 
 The `WSServerPubSub` class extends `WSServer` to provide Publish-Subscribe (PubSub) functionality and Remote Procedure Call (RPC) capabilities for WebSocket communication. It allows clients to subscribe to channels, publish messages, and call server-side functions. Look at [WSServerRoomManager](./WSServerRoomManager.md) for room-based management features.
 
+**Note:** The PubSub implementation sends messages directly to connected clients and does not use any message queuing system.
+
 ## Table of Contents
 
 - [Constructor](#constructor)

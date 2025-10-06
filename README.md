@@ -9,7 +9,7 @@ Minimalist WebSocket client and server for real-time applications with RPC, PubS
 
 - 🚀 Lightweight and easy
 - 📡 RPC - Remote Procedure Calls with built-in error handling
-- 🎯 PubSub - Very simple Publish/Subscribe system
+- 🎯 PubSub - Very simple Publish/Subscribe system (sends messages directly to connected clients without message queuing)
 - 🏠 Room-based management system
 - 🎮 Game-ready with fixed timestep game loop and state synchronization
 
