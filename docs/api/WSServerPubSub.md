@@ -79,6 +79,7 @@ Adds a new channel to the server. Channels allow clients to subscribe and publis
   - `usersCanPub` (boolean, optional): Whether users can publish to this channel. Default: `true`
   - `usersCanSub` (boolean, optional): Whether users can subscribe to this channel. Default: `true`
   - `hookPub` (function, optional): Hook called before publishing a message. Should return the transformed message or throw `WSServerError` to reject the publication (this will cause the client's promise to be rejected). Default: `(msg, client, wsServer) => msg`
+  - `hookPubPost` (function, optional): Hook called after a successful publication. Errors thrown in this hook are logged but do not affect the publication. Default: `(msg, client, wsServer) => null`
   - `hookSub` (function, optional): Hook called before subscribing a client. MUST return `true` to accept the subscription or `false` to reject it. Default: `(client, wsServer) => true`
   - `hookSubPost` (function, optional): Hook called after a successful subscription. Errors thrown in this hook are logged but do not affect the subscription. Default: `(client, wsServer) => null`
   - `hookUnsub` (function, optional): Hook called before unsubscribing a client. Default: `(client, wsServer) => null`
@@ -112,14 +113,36 @@ wsServer.addChannel('admin-chat', {
       timestamp: Date.now()
     };
   },
+  hookPubPost: (msg, client, wsServer) => {
+    // Called after successful publication
+    console.log(`User ${client.id} published to admin chat`);
+    
+    // Log for analytics
+    analytics.track('message_sent', {
+      userId: client.id,
+      channel: 'admin-chat',
+      messageId: msg.id
+    });
+  },
   hookSub: (client, wsServer) => {
     // MUST return true to accept subscription, false to reject
     return client.isAdmin; // Accept subscription for admin users
   },
   hookSubPost: (client, wsServer) => {
     // Called after successful subscription
-    // you can add analytics or send a welcome message here
     console.log(`User ${client.id} joined admin chat`);
+    
+    // Send welcome message
+    wsServer.sendCmd(client.ws, 'welcome', { 
+      channel: 'admin-chat',
+      message: 'Welcome to admin chat!' 
+    });
+    
+    // Notify other users
+    wsServer.broadcastOthersCmd(client.ws, 'user-joined', {
+      userId: client.id,
+      channel: 'admin-chat'
+    });
   },
   hookUnsub: (client, wsServer) => {
     console.log(`User ${client.userId} unsubscribed from admin chat`);

@@ -52,6 +52,7 @@ describe('WSServerPubSub', () => {
 
       it('should add a channel with custom options', () => {
         const hookPub = (msg) => ({ ...msg, modified: true });
+        const hookPubPost = () => null;
         const hookSub = () => true;
         const hookSubPost = () => null;
         const hookUnsub = () => null;
@@ -60,6 +61,7 @@ describe('WSServerPubSub', () => {
           usersCanPub: false,
           usersCanSub: false,
           hookPub,
+          hookPubPost,
           hookSub,
           hookSubPost,
           hookUnsub
@@ -71,6 +73,7 @@ describe('WSServerPubSub', () => {
         expect(channel.usersCanPub).to.be.false;
         expect(channel.usersCanSub).to.be.false;
         expect(channel.hookPub).to.equal(hookPub);
+        expect(channel.hookPubPost).to.equal(hookPubPost);
         expect(channel.hookSub).to.equal(hookSub);
         expect(channel.hookSubPost).to.equal(hookSubPost);
         expect(channel.hookUnsub).to.equal(hookUnsub);
@@ -1081,6 +1084,91 @@ describe('WSServerPubSub', () => {
           chan: 'restricted-channel',
           type: 'error',
           response: 'Users cannot pub on this chan'
+        })
+      );
+    });
+
+    it('should call hookPubPost after successful publication', () => {
+      const hookPubPost = sandbox.stub();
+      server.addChannel('hooked-channel', { hookPubPost });
+
+      const client = createMockClient();
+      const clientData = { id: 'test-client', username: 'testuser' };
+      server.clients.set(client, clientData);
+
+      const testMsg = { content: 'Hello world' };
+      const message = JSON.stringify({
+        action: 'pub',
+        chan: 'hooked-channel',
+        msg: testMsg,
+        id: 1
+      });
+
+      const result = server.onMessage(client, Buffer.from(message));
+
+      expect(result).to.be.true;
+      expect(hookPubPost).to.have.been.calledOnce;
+      expect(hookPubPost).to.have.been.calledWith(testMsg, clientData, server);
+      expect(client.send).to.have.been.calledWith(
+        JSON.stringify({
+          action: 'pub-confirm',
+          id: 1,
+          chan: 'hooked-channel',
+          type: 'success',
+          response: 'Message sent'
+        })
+      );
+    });
+
+    it('should not call hookPubPost when publication fails', () => {
+      const hookPubPost = sandbox.stub();
+      const hookPub = sandbox.stub().throws(new WSServerError('Validation failed'));
+      server.addChannel('hooked-channel', { hookPub, hookPubPost });
+
+      const client = createMockClient();
+      server.clients.set(client, { id: 'test-client' });
+
+      const message = JSON.stringify({
+        action: 'pub',
+        chan: 'hooked-channel',
+        msg: 'Test message',
+        id: 1
+      });
+
+      const result = server.onMessage(client, Buffer.from(message));
+
+      expect(result).to.be.false;
+      expect(hookPubPost).to.not.have.been.called;
+    });
+
+    it('should log error if hookPubPost throws but still complete publication', () => {
+      const logSpy = sandbox.spy(server, 'log');
+      const hookPubPost = sandbox.stub().throws(new Error('Post hook error'));
+      server.addChannel('hooked-channel', { hookPubPost });
+
+      const client = createMockClient();
+      server.clients.set(client, { id: 'test-client' });
+
+      const message = JSON.stringify({
+        action: 'pub',
+        chan: 'hooked-channel',
+        msg: 'Test message',
+        id: 1
+      });
+
+      const result = server.onMessage(client, Buffer.from(message));
+
+      expect(result).to.be.true;
+      expect(hookPubPost).to.have.been.calledOnce;
+      expect(logSpy).to.have.been.calledWith('hookPubPost error: Post hook error', 'error');
+      // Publication should still succeed
+      expect(client.send).to.have.been.calledWith(
+        JSON.stringify({
+          action: 'pub-confirm',
+          id: 1,
+          chan: 'hooked-channel',
+          type: 'success',
+          response: 'Message sent'
         })
       );
     });

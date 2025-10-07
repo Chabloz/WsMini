@@ -18,6 +18,9 @@ export default class WSServerPubSub extends WSServer {
    * It must return the message to send to the all clients of the channel.
    * The callback is called with the message to publish, the client metadata and the server instance.
    * It can throw a WSServerError to send an error to the client
+   * @param {function} [options.hookPubPost=(msg, client, wsServer) => null] - The hook to call after a successful publication
+   * The callback is called with the transformed message, the client metadata and the server instance.
+   * Errors thrown in this hook are logged but do not affect the publication.
    * @param {function} [options.hookSub=(client, wsServer) => true] - The hook to call before subscribing a client to the channel
    * It must return true if the client can subscribe to the channel, false otherwise.
    * The callback is called with the client metadata and the server instance
@@ -35,6 +38,9 @@ export default class WSServerPubSub extends WSServer {
    *   hookPub: (msg, client, wsServer) => {
    *     return {...msg, from: client.username, time: Date.now()}
    *   },
+   *   hookPubPost: (msg, client, wsServer) => {
+   *     console.log(`User ${client.id} published message to chat`);
+   *   },
    *   hookSubPost: (client, wsServer) => {
    *     console.log(`User ${client.id} joined chat`);
    *   }
@@ -44,6 +50,7 @@ export default class WSServerPubSub extends WSServer {
     usersCanPub = true,
     usersCanSub = true,
     hookPub = (msg, client, wsServer) => msg,
+    hookPubPost = (msg, client, wsServer) => null,
     hookSub = (client, wsServer) => true,
     hookSubPost = (client, wsServer) => null,
     hookUnsub = (client, wsServer) => null,
@@ -53,6 +60,7 @@ export default class WSServerPubSub extends WSServer {
       usersCanPub,
       usersCanSub,
       hookPub,
+      hookPubPost,
       hookSub,
       hookSubPost,
       hookUnsub,
@@ -263,6 +271,13 @@ export default class WSServerPubSub extends WSServer {
       }
 
       this.sendPubSuccess(client, data.id, data.chan, 'Message sent');
+      
+      try {
+        chan.hookPubPost(dataToSend, this.clients.get(client), this);
+      } catch (e) {
+        this.log('hookPubPost error: ' + e.message, 'error');
+      }
+      
       return this.pub(data.chan, dataToSend);
     }
 
