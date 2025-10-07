@@ -80,6 +80,7 @@ Adds a new channel to the server. Channels allow clients to subscribe and publis
   - `usersCanSub` (boolean, optional): Whether users can subscribe to this channel. Default: `true`
   - `hookPub` (function, optional): Hook called before publishing a message. Should return the transformed message or throw `WSServerError` to reject the publication (this will cause the client's promise to be rejected). Default: `(msg, client, wsServer) => msg`
   - `hookSub` (function, optional): Hook called before subscribing a client. MUST return `true` to accept the subscription or `false` to reject it. Default: `(client, wsServer) => true`
+  - `hookSubPost` (function, optional): Hook called after a successful subscription. Errors thrown in this hook are logged but do not affect the subscription. Default: `(client, wsServer) => null`
   - `hookUnsub` (function, optional): Hook called before unsubscribing a client. Default: `(client, wsServer) => null`
 
 **Returns:** `boolean` - `true` if channel was added successfully, `false` if channel already exists
@@ -114,6 +115,11 @@ wsServer.addChannel('admin-chat', {
   hookSub: (client, wsServer) => {
     // MUST return true to accept subscription, false to reject
     return client.isAdmin; // Accept subscription for admin users
+  },
+  hookSubPost: (client, wsServer) => {
+    // Called after successful subscription
+    // you can add analytics or send a welcome message here
+    console.log(`User ${client.id} joined admin chat`);
   },
   hookUnsub: (client, wsServer) => {
     console.log(`User ${client.userId} unsubscribed from admin chat`);

@@ -288,7 +288,7 @@ The test suite provides comprehensive coverage of all WebSocket components with 
 - ✅ Error throwing and catching
 - ✅ Error serialization and comparison
 
-**Total Test Count**: 309 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
+**Total Test Count**: 312 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
 
 ## Dependencies
 

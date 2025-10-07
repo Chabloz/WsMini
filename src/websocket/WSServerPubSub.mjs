@@ -21,6 +21,9 @@ export default class WSServerPubSub extends WSServer {
    * @param {function} [options.hookSub=(client, wsServer) => true] - The hook to call before subscribing a client to the channel
    * It must return true if the client can subscribe to the channel, false otherwise.
    * The callback is called with the client metadata and the server instance
+   * @param {function} [options.hookSubPost=(client, wsServer) => null] - The hook to call after a successful subscription
+   * The callback is called with the client metadata and the server instance.
+   * Errors thrown in this hook are logged but do not affect the subscription.
    * @param {function} [options.hookUnsub=(client, wsServer) => null] - The hook to call before unsubscribing a client to the channel
    * The return value does not matter.
    * The callback is called with the client metadata and the server instance
@@ -32,6 +35,9 @@ export default class WSServerPubSub extends WSServer {
    *   hookPub: (msg, client, wsServer) => {
    *     return {...msg, from: client.username, time: Date.now()}
    *   },
+   *   hookSubPost: (client, wsServer) => {
+   *     console.log(`User ${client.id} joined chat`);
+   *   }
    * });
    */
   addChannel(chan, {
@@ -39,6 +45,7 @@ export default class WSServerPubSub extends WSServer {
     usersCanSub = true,
     hookPub = (msg, client, wsServer) => msg,
     hookSub = (client, wsServer) => true,
+    hookSubPost = (client, wsServer) => null,
     hookUnsub = (client, wsServer) => null,
   } = {}) {
     if (this.channels.has(chan)) return false;
@@ -47,6 +54,7 @@ export default class WSServerPubSub extends WSServer {
       usersCanSub,
       hookPub,
       hookSub,
+      hookSubPost,
       hookUnsub,
       clients: new Set(),
     });
@@ -225,6 +233,13 @@ export default class WSServerPubSub extends WSServer {
       }
 
       chan.clients.add(client);
+
+      try {
+        chan.hookSubPost(this.clients.get(client), this);
+      } catch (e) {
+        this.log('hookSubPost error: ' + e.message, 'error');
+      }
+
       return this.sendSubSuccess(client, data.id, data.chan, 'Subscribed');
     }
 
