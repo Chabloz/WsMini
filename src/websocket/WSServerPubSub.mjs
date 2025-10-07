@@ -30,6 +30,9 @@ export default class WSServerPubSub extends WSServer {
    * @param {function} [options.hookUnsub=(client, wsServer) => null] - The hook to call before unsubscribing a client to the channel
    * The return value does not matter.
    * The callback is called with the client metadata and the server instance
+   * @param {function} [options.hookUnsubPost=(client, wsServer) => null] - The hook to call after a successful unsubscription
+   * The callback is called with the client metadata and the server instance.
+   * Errors thrown in this hook are logged but do not affect the unsubscription.
    *
    * @example
    * wsServer.addChannel('chat', {
@@ -43,6 +46,9 @@ export default class WSServerPubSub extends WSServer {
    *   },
    *   hookSubPost: (client, wsServer) => {
    *     console.log(`User ${client.id} joined chat`);
+   *   },
+   *   hookUnsubPost: (client, wsServer) => {
+   *     console.log(`User ${client.id} left chat`);
    *   }
    * });
    */
@@ -54,6 +60,7 @@ export default class WSServerPubSub extends WSServer {
     hookSub = (client, wsServer) => true,
     hookSubPost = (client, wsServer) => null,
     hookUnsub = (client, wsServer) => null,
+    hookUnsubPost = (client, wsServer) => null,
   } = {}) {
     if (this.channels.has(chan)) return false;
     this.channels.set(chan, {
@@ -64,6 +71,7 @@ export default class WSServerPubSub extends WSServer {
       hookSub,
       hookSubPost,
       hookUnsub,
+      hookUnsubPost,
       clients: new Set(),
     });
     return true;
@@ -156,9 +164,19 @@ export default class WSServerPubSub extends WSServer {
   removeChannel(chanName) {
     if (!this.channels.has(chanName)) return false;
     const chan = this.channels.get(chanName);
-    // Call the unsub hook for all clients
+    // Call the unsub and unsubPost hooks for all clients
     for (const client of chan.clients) {
-      chan.hookUnsub(this.clients.get(client), this);
+      const clientData = this.clients.get(client);
+      try {
+        chan.hookUnsub(clientData, this);
+      } catch (e) {
+        this.log('hookUnsub error: ' + e.message, 'error');
+      }
+      try {
+        chan.hookUnsubPost(clientData, this);
+      } catch (e) {
+        this.log('hookUnsubPost error: ' + e.message, 'error');
+      }
     }
     this.channels.delete(chanName);
     return true;
@@ -220,8 +238,20 @@ export default class WSServerPubSub extends WSServer {
         return this.sendUnsubError(client, data.id, data.chan, 'Not subscribed');
       }
 
-      chan.hookUnsub(this.clients.get(client), this);
+      try {
+        chan.hookUnsub(this.clients.get(client), this);
+      } catch (e) {
+        this.log('hookUnsub error: ' + e.message, 'error');
+      }
+
       chan.clients.delete(client);
+
+      try {
+        chan.hookUnsubPost(this.clients.get(client), this);
+      } catch (e) {
+        this.log('hookUnsubPost error: ' + e.message, 'error');
+      }
+
       return this.sendUnsubSuccess(client, data.id, data.chan, 'Unsubscribed');
     }
 
@@ -271,13 +301,13 @@ export default class WSServerPubSub extends WSServer {
       }
 
       this.sendPubSuccess(client, data.id, data.chan, 'Message sent');
-      
+
       try {
         chan.hookPubPost(dataToSend, this.clients.get(client), this);
       } catch (e) {
         this.log('hookPubPost error: ' + e.message, 'error');
       }
-      
+
       return this.pub(data.chan, dataToSend);
     }
 
@@ -340,8 +370,18 @@ export default class WSServerPubSub extends WSServer {
   onClose(client) {
     for (const chan of this.channels.values()) {
       if (chan.clients.has(client)) {
-        chan.hookUnsub(this.clients.get(client), this);
+        const clientData = this.clients.get(client);
+        try {
+          chan.hookUnsub(clientData, this);
+        } catch (e) {
+          this.log('hookUnsub error: ' + e.message, 'error');
+        }
         chan.clients.delete(client);
+        try {
+          chan.hookUnsubPost(clientData, this);
+        } catch (e) {
+          this.log('hookUnsubPost error: ' + e.message, 'error');
+        }
       }
     }
     super.onClose(client);

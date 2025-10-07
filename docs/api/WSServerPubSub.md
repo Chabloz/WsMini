@@ -83,6 +83,7 @@ Adds a new channel to the server. Channels allow clients to subscribe and publis
   - `hookSub` (function, optional): Hook called before subscribing a client. MUST return `true` to accept the subscription or `false` to reject it. Default: `(client, wsServer) => true`
   - `hookSubPost` (function, optional): Hook called after a successful subscription. Errors thrown in this hook are logged but do not affect the subscription. Default: `(client, wsServer) => null`
   - `hookUnsub` (function, optional): Hook called before unsubscribing a client. Default: `(client, wsServer) => null`
+  - `hookUnsubPost` (function, optional): Hook called after a successful unsubscription. Errors thrown in this hook are logged but do not affect the unsubscription. Default: `(client, wsServer) => null`
 
 **Returns:** `boolean` - `true` if channel was added successfully, `false` if channel already exists
 
@@ -116,13 +117,6 @@ wsServer.addChannel('admin-chat', {
   hookPubPost: (msg, client, wsServer) => {
     // Called after successful publication
     console.log(`User ${client.id} published to admin chat`);
-    
-    // Log for analytics
-    analytics.track('message_sent', {
-      userId: client.id,
-      channel: 'admin-chat',
-      messageId: msg.id
-    });
   },
   hookSub: (client, wsServer) => {
     // MUST return true to accept subscription, false to reject
@@ -131,21 +125,13 @@ wsServer.addChannel('admin-chat', {
   hookSubPost: (client, wsServer) => {
     // Called after successful subscription
     console.log(`User ${client.id} joined admin chat`);
-    
-    // Send welcome message
-    wsServer.sendCmd(client.ws, 'welcome', { 
-      channel: 'admin-chat',
-      message: 'Welcome to admin chat!' 
-    });
-    
-    // Notify other users
-    wsServer.broadcastOthersCmd(client.ws, 'user-joined', {
-      userId: client.id,
-      channel: 'admin-chat'
-    });
   },
   hookUnsub: (client, wsServer) => {
     console.log(`User ${client.userId} unsubscribed from admin chat`);
+  },
+  hookUnsubPost: (client, wsServer) => {
+    // Called after successful unsubscription
+    console.log(`User ${client.id} left admin chat`);
   }
 });
 ```

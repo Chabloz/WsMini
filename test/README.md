@@ -123,7 +123,7 @@ Tests the publish-subscribe functionality extending WSServer:
 - **Authentication Methods**: Tests sendAuthFailed and sendAuthSuccess functionality
 - **Command Methods**: Tests sendCmd, broadcastCmd, and broadcastOthersCmd
 - **Channel Management**: Tests getChannel(), getChannelClients(), and getChannelClientsData() methods
-- **Hook Testing**: Tests hookSubPost and hookPubPost callback execution on successful operations and error handling
+- **Hook Testing**: Tests hookSubPost, hookPubPost, and hookUnsubPost callback execution on successful operations and error handling
 - **Pub-Simple Action**: Tests pub-simple message handling with success and error cases
 - **RPC Error Handling**: Tests RPC error scenarios with WSServerError and generic errors
 - **Pub Action Error Handling**: Tests publication error scenarios
@@ -289,7 +289,7 @@ The test suite provides comprehensive coverage of all WebSocket components with 
 - ✅ Error throwing and catching
 - ✅ Error serialization and comparison
 
-**Total Test Count**: 315 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
+**Total Test Count**: 318 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
 
 ## Dependencies
 

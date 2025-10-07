@@ -56,6 +56,7 @@ describe('WSServerPubSub', () => {
         const hookSub = () => true;
         const hookSubPost = () => null;
         const hookUnsub = () => null;
+        const hookUnsubPost = () => null;
 
         const result = server.addChannel('custom-channel', {
           usersCanPub: false,
@@ -64,7 +65,8 @@ describe('WSServerPubSub', () => {
           hookPubPost,
           hookSub,
           hookSubPost,
-          hookUnsub
+          hookUnsub,
+          hookUnsubPost
         });
 
         expect(result).to.be.true;
@@ -77,6 +79,7 @@ describe('WSServerPubSub', () => {
         expect(channel.hookSub).to.equal(hookSub);
         expect(channel.hookSubPost).to.equal(hookSubPost);
         expect(channel.hookUnsub).to.equal(hookUnsub);
+        expect(channel.hookUnsubPost).to.equal(hookUnsubPost);
       });
 
       it('should return false for duplicate channel', () => {
@@ -925,6 +928,96 @@ describe('WSServerPubSub', () => {
           response: 'Not subscribed'
         })
       );
+    });
+
+    it('should call hookUnsubPost after successful unsubscription', () => {
+      const hookUnsubPost = sandbox.stub();
+      server.addChannel('hooked-channel', { hookUnsubPost });
+
+      const client = createMockClient();
+      const clientData = { id: 'test-client', username: 'testuser' };
+      server.clients.set(client, clientData);
+
+      // First subscribe
+      const channel = server.channels.get('hooked-channel');
+      channel.clients.add(client);
+
+      const message = JSON.stringify({
+        action: 'unsub',
+        chan: 'hooked-channel',
+        id: 1
+      });
+
+      const result = server.onMessage(client, Buffer.from(message));
+
+      expect(result).to.be.true;
+      expect(hookUnsubPost).to.have.been.calledOnce;
+      expect(hookUnsubPost).to.have.been.calledWith(clientData, server);
+      expect(client.send).to.have.been.calledWith(
+        JSON.stringify({
+          action: 'unsub',
+          id: 1,
+          chan: 'hooked-channel',
+          type: 'success',
+          response: 'Unsubscribed'
+        })
+      );
+    });
+
+    it('should not call hookUnsubPost when unsubscription fails', () => {
+      const hookUnsubPost = sandbox.stub();
+      server.addChannel('hooked-channel', { hookUnsubPost });
+
+      const client = createMockClient();
+      server.clients.set(client, { id: 'test-client' });
+
+      // Don't subscribe first
+      const message = JSON.stringify({
+        action: 'unsub',
+        chan: 'hooked-channel',
+        id: 1
+      });
+
+      const result = server.onMessage(client, Buffer.from(message));
+
+      expect(result).to.be.false;
+      expect(hookUnsubPost).to.not.have.been.called;
+    });
+
+    it('should log error if hookUnsubPost throws but still complete unsubscription', () => {
+      const logSpy = sandbox.spy(server, 'log');
+      const hookUnsubPost = sandbox.stub().throws(new Error('Post hook error'));
+      server.addChannel('hooked-channel', { hookUnsubPost });
+
+      const client = createMockClient();
+      server.clients.set(client, { id: 'test-client' });
+
+      // First subscribe
+      const channel = server.channels.get('hooked-channel');
+      channel.clients.add(client);
+
+      const message = JSON.stringify({
+        action: 'unsub',
+        chan: 'hooked-channel',
+        id: 1
+      });
+
+      const result = server.onMessage(client, Buffer.from(message));
+
+      expect(result).to.be.true;
+      expect(hookUnsubPost).to.have.been.calledOnce;
+      expect(logSpy).to.have.been.calledWith('hookUnsubPost error: Post hook error', 'error');
+      // Unsubscription should still succeed
+      expect(client.send).to.have.been.calledWith(
+        JSON.stringify({
+          action: 'unsub',
+          id: 1,
+          chan: 'hooked-channel',
+          type: 'success',
+          response: 'Unsubscribed'
+        })
+      );
+      expect(channel.clients.has(client)).to.be.false;
     });
 
     it('should handle subscribe to channel where usersCanSub is false', () => {
