@@ -78,8 +78,8 @@ Adds a new channel to the server. Channels allow clients to subscribe and publis
 - `options` (object, optional): Channel configuration options
   - `usersCanPub` (boolean, optional): Whether users can publish to this channel. Default: `true`
   - `usersCanSub` (boolean, optional): Whether users can subscribe to this channel. Default: `true`
-  - `hookPub` (function, optional): Hook called before publishing a message. Default: `(msg, client, wsServer) => msg`
-  - `hookSub` (function, optional): Hook called before subscribing a client. Default: `(client, wsServer) => true`
+  - `hookPub` (function, optional): Hook called before publishing a message. Should return the transformed message or throw `WSServerError` to reject the publication (this will cause the client's promise to be rejected). Default: `(msg, client, wsServer) => msg`
+  - `hookSub` (function, optional): Hook called before subscribing a client. MUST return `true` to accept the subscription or `false` to reject it. Default: `(client, wsServer) => true`
   - `hookUnsub` (function, optional): Hook called before unsubscribing a client. Default: `(client, wsServer) => null`
 
 **Returns:** `boolean` - `true` if channel was added successfully, `false` if channel already exists
@@ -94,6 +94,16 @@ wsServer.addChannel('admin-chat', {
   usersCanPub: true,
   usersCanSub: true,
   hookPub: (msg, client, wsServer) => {
+    // Validate message content
+    if (!msg.content || msg.content.trim().length === 0) {
+      throw new WSServerError('Message content cannot be empty');
+    }
+
+    // Check user permissions
+    if (msg.type === 'admin' && !client.isAdmin) {
+      throw new WSServerError('Insufficient permissions for admin message');
+    }
+
     // Transform message before broadcasting
     return {
       ...msg,
@@ -102,11 +112,11 @@ wsServer.addChannel('admin-chat', {
     };
   },
   hookSub: (client, wsServer) => {
-    // return false if the user is not allowed to subscribe to this channel
-    return client.isAdmin;
+    // MUST return true to accept subscription, false to reject
+    return client.isAdmin; // Accept subscription for admin users
   },
   hookUnsub: (client, wsServer) => {
-    console.log(`User ${client.userId} unsubscribed from chat`);
+    console.log(`User ${client.userId} unsubscribed from admin chat`);
   }
 });
 ```

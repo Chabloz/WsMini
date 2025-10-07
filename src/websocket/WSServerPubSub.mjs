@@ -117,8 +117,6 @@ export default class WSServerPubSub extends WSServer {
     return clients.map(client => this.clients.get(client)).filter(Boolean);
   }
 
-
-
   /**
    * Add a RPC to the server
    *
