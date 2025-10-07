@@ -65,6 +65,61 @@ export default class WSServerPubSub extends WSServer {
   }
 
   /**
+   * Get a channel by name
+   * @param {string} chanName - The channel name
+   * @returns {object|null} - The channel object if it exists, null otherwise
+   * @example
+   * const channel = wsServer.getChannel('chat');
+   * if (channel) {
+   *   console.log(channel.clients.size); // Number of subscribers
+   * }
+   */
+  getChannel(chanName) {
+    if (!this.channels.has(chanName)) return null;
+    return this.channels.get(chanName);
+  }
+
+  /**
+   * Get the clients subscribed to a channel
+   * @param {string} chanName - The channel name
+   * @returns {Array|null} - The array of clients subscribed to the channel, or null if channel doesn't exist
+   * @example
+   * const clients = wsServer.getChannelClients('chat');
+   * if (clients) {
+   *   console.log(`${clients.length} clients are subscribed to chat`);
+   *   for (const client of clients) {
+   *     console.log(wsServer.clients.get(client).id);
+   *   }
+   * }
+   */
+  getChannelClients(chanName) {
+    if (!this.channels.has(chanName)) return null;
+    const channel = this.getChannel(chanName);
+    return channel ? Array.from(channel.clients) : null;
+  }
+
+  /**
+   * Get the metadata of all clients subscribed to a channel
+   * @param {string} chanName - The channel name
+   * @returns {Array|null} - The array of client metadata objects, or null if channel doesn't exist
+   * @example
+   * const clientsData = wsServer.getChannelClientsData('chat');
+   * if (clientsData) {
+   *   console.log(`${clientsData.length} clients are subscribed to chat`);
+   *   for (const clientData of clientsData) {
+   *     console.log(`Client ${clientData.id} with role ${clientData.role}`);
+   *   }
+   * }
+   */
+  getChannelClientsData(chanName) {
+    const clients = this.getChannelClients(chanName);
+    if (!clients) return null;
+    return clients.map(client => this.clients.get(client)).filter(Boolean);
+  }
+
+
+
+  /**
    * Add a RPC to the server
    *
    * @param {string} name - The RPC name

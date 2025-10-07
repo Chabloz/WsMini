@@ -114,6 +114,7 @@ Tests the publish-subscribe functionality extending WSServer:
 
 - **Constructor**: Tests PubSub server creation and inheritance
 - **Channel Management**: Tests channel creation, validation, and removal
+- **Channel Access Methods**: Tests getChannel(), getChannelClients(), and getChannelClientsData() methods
 - **RPC Management**: Tests RPC endpoint registration and removal
 - **Action Validation**: Tests message action validation for PubSub and RPC
 - **Message Processing**: Tests subscription, publication, and RPC message handling
@@ -242,6 +243,7 @@ The test suite provides comprehensive coverage of all WebSocket components with 
 
 ### WSServerPubSub
 - ✅ Channel and RPC management
+- ✅ Channel access methods (getChannel, getChannelClients, getChannelClientsData)
 - ✅ Subscription and publication flows
 - ✅ Message validation and processing
 - ✅ Client cleanup and unsubscription
@@ -285,7 +287,7 @@ The test suite provides comprehensive coverage of all WebSocket components with 
 - ✅ Error throwing and catching
 - ✅ Error serialization and comparison
 
-**Total Test Count**: 300 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
+**Total Test Count**: 309 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
 
 ## Dependencies
 

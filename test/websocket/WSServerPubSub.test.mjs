@@ -93,6 +93,121 @@ describe('WSServerPubSub', () => {
       });
     });
 
+    describe('getChannel', () => {
+      it('should return channel object for existing channel', () => {
+        server.addChannel('test-channel', {
+          usersCanPub: false,
+          usersCanSub: true
+        });
+
+        const channel = server.getChannel('test-channel');
+
+        expect(channel).to.not.be.null;
+        expect(channel.usersCanPub).to.be.false;
+        expect(channel.usersCanSub).to.be.true;
+        expect(channel.clients).to.be.instanceOf(Set);
+      });
+
+      it('should return null for non-existing channel', () => {
+        const channel = server.getChannel('non-existing');
+
+        expect(channel).to.be.null;
+      });
+    });
+
+    describe('getChannelClients', () => {
+      it('should return array of clients for existing channel', () => {
+        server.addChannel('test-channel');
+        const client1 = createMockClient();
+        const client2 = createMockClient();
+
+        const channel = server.channels.get('test-channel');
+        channel.clients.add(client1);
+        channel.clients.add(client2);
+
+        const clients = server.getChannelClients('test-channel');
+
+        expect(clients).to.be.an('array');
+        expect(clients).to.have.length(2);
+        expect(clients).to.include(client1);
+        expect(clients).to.include(client2);
+      });
+
+      it('should return empty array for channel with no clients', () => {
+        server.addChannel('empty-channel');
+
+        const clients = server.getChannelClients('empty-channel');
+
+        expect(clients).to.be.an('array');
+        expect(clients).to.have.length(0);
+      });
+
+      it('should return null for non-existing channel', () => {
+        const clients = server.getChannelClients('non-existing');
+
+        expect(clients).to.be.null;
+      });
+    });
+
+    describe('getChannelClientsData', () => {
+      it('should return array of client metadata for existing channel', () => {
+        server.addChannel('test-channel');
+        const client1 = createMockClient();
+        const client2 = createMockClient();
+        const clientMeta1 = { id: 'client1', role: 'admin' };
+        const clientMeta2 = { id: 'client2', role: 'user' };
+
+        server.clients.set(client1, clientMeta1);
+        server.clients.set(client2, clientMeta2);
+
+        const channel = server.channels.get('test-channel');
+        channel.clients.add(client1);
+        channel.clients.add(client2);
+
+        const clientsData = server.getChannelClientsData('test-channel');
+
+        expect(clientsData).to.be.an('array');
+        expect(clientsData).to.have.length(2);
+        expect(clientsData).to.include(clientMeta1);
+        expect(clientsData).to.include(clientMeta2);
+      });
+
+      it('should return empty array for channel with no clients', () => {
+        server.addChannel('empty-channel');
+
+        const clientsData = server.getChannelClientsData('empty-channel');
+
+        expect(clientsData).to.be.an('array');
+        expect(clientsData).to.have.length(0);
+      });
+
+      it('should filter out clients without metadata', () => {
+        server.addChannel('test-channel');
+        const client1 = createMockClient();
+        const client2 = createMockClient();
+        const clientMeta1 = { id: 'client1', role: 'admin' };
+
+        server.clients.set(client1, clientMeta1);
+        // client2 has no metadata
+
+        const channel = server.channels.get('test-channel');
+        channel.clients.add(client1);
+        channel.clients.add(client2);
+
+        const clientsData = server.getChannelClientsData('test-channel');
+
+        expect(clientsData).to.be.an('array');
+        expect(clientsData).to.have.length(1);
+        expect(clientsData).to.include(clientMeta1);
+      });
+
+      it('should return null for non-existing channel', () => {
+        const clientsData = server.getChannelClientsData('non-existing');
+
+        expect(clientsData).to.be.null;
+      });
+    });
+
     describe('removeChannel', () => {
       it('should remove existing channel', () => {
         server.addChannel('removable-channel');

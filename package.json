@@ -3,7 +3,7 @@
     "ws": "^8.18.0"
   },
   "name": "wsmini",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Minimalist WebSocket client and server for real-time applications with RPC, PubSub, Rooms and Game state synchronization.",
   "main": "src/index.js",
   "browser": "src/browser.js",

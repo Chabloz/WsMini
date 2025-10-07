@@ -10,6 +10,9 @@ The `WSServerPubSub` class extends `WSServer` to provide Publish-Subscribe (PubS
 - [Channel Management](#channel-management)
   - [addChannel](#addchannel-name-options)
   - [hasChannel](#haschannelchanname)
+  - [getChannel](#getchannelchanname)
+  - [getChannelClients](#getchannelclientschanname)
+  - [getChannelClientsData](#getchannelclientsdatachanname)
   - [removeChannel](#removechannelchanname)
   - [pub](#pubchanname-msg)
 - [RPC Management](#rpc-management)
@@ -121,6 +124,83 @@ Checks if a channel exists.
 ```javascript
 if (wsServer.hasChannel('chat')) {
   console.log('Chat channel exists');
+}
+```
+
+### `getChannel(chanName)`
+
+Gets a channel object by name.
+
+**Parameters:**
+- `chanName` (string): The channel name to retrieve
+
+**Returns:** `object|null` - The channel object if it exists, `null` otherwise
+
+The returned channel object contains:
+- `usersCanPub` (boolean): Whether users can publish to this channel
+- `usersCanSub` (boolean): Whether users can subscribe to this channel
+- `hookPub` (function): The publish hook function
+- `hookSub` (function): The subscribe hook function
+- `hookUnsub` (function): The unsubscribe hook function
+- `clients` (Set): Set of WebSocket clients subscribed to this channel
+
+**Example:**
+```javascript
+const channel = wsServer.getChannel('chat');
+if (channel) {
+  console.log(`Channel has ${channel.clients.size} subscribers`);
+  console.log(`Can publish: ${channel.usersCanPub}`);
+  console.log(`Can subscribe: ${channel.usersCanSub}`);
+}
+```
+
+### `getChannelClients(chanName)`
+
+Gets an array of clients subscribed to a specific channel.
+
+**Parameters:**
+- `chanName` (string): The channel name
+
+**Returns:** `Array|null` - Array of WebSocket client objects subscribed to the channel, or `null` if channel doesn't exist
+
+**Example:**
+```javascript
+const clients = wsServer.getChannelClients('chat');
+if (clients) {
+  console.log(`${clients.length} clients are subscribed to chat`);
+
+  // Iterate through all clients
+  for (const client of clients) {
+    const metadata = wsServer.clients.get(client);
+    console.log(`Client ${metadata.id} is subscribed`);
+  }
+
+  // Send a message to all subscribers
+  clients.forEach(client => {
+    wsServer.sendCmd(client, 'special-notification', {
+      message: 'Hello subscriber!'
+    });
+  });
+}
+```
+
+### `getChannelClientsData(chanName)`
+
+Gets an array of client metadata objects for all clients subscribed to a specific channel.
+
+**Parameters:**
+- `chanName` (string): The channel name
+
+**Returns:** `Array|null` - Array of client metadata objects, or `null` if channel doesn't exist
+
+**Example:**
+```javascript
+const clientsData = wsServer.getChannelClientsData('chat');
+if (clientsData) {
+  console.log(`${clientsData.length} clients are subscribed to chat`);
+  for (const clientData of clientsData) {
+    console.log(`Client ${clientData.id} with role ${clientData.role`);
+  }
 }
 ```
 
