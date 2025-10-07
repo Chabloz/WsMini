@@ -122,6 +122,7 @@ Tests the publish-subscribe functionality extending WSServer:
 - **Publishing Methods**: Tests direct publishing to channels
 - **Authentication Methods**: Tests sendAuthFailed and sendAuthSuccess functionality
 - **Command Methods**: Tests sendCmd, broadcastCmd, and broadcastOthersCmd
+- **Channel Management**: Tests getChannel(), getChannelClients(), and getChannelClientsData() methods
 - **Pub-Simple Action**: Tests pub-simple message handling with success and error cases
 - **RPC Error Handling**: Tests RPC error scenarios with WSServerError and generic errors
 - **Pub Action Error Handling**: Tests publication error scenarios
