@@ -70,8 +70,11 @@ export default class WSClient {
     this.wsClient.close();
     this.wsClient = null;
     this.clientId = null;
-    // Clean all event listeners
-    this.mixinEvent();
+    for (const event of this.listeners.keys()) {
+      if (event.startsWith('ws:')) {
+        this.listeners.delete(event);
+      }
+    }
     this.emit('close');
   }
 
