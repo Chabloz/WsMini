@@ -70,6 +70,8 @@ export default class WSClient {
     this.wsClient.close();
     this.wsClient = null;
     this.clientId = null;
+    // Clean all event listeners
+    this.mixinEvent();
     this.emit('close');
   }
 
