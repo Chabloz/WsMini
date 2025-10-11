@@ -1,6 +1,6 @@
 # WSServer API Documentation
 
-**⚠️ Important:** `WSServer` is a base class that should **not be used directly** in production. Instead, use one of its specialized implementations:
+**⚠️ Important:** `WSServer` is a base class that should **not be used directly**. Instead, use one of its specialized implementations:
 - [WSServerPubSub](./WSServerPubSub.md) - For Publish-Subscribe and RPC functionality
 - [WSServerRoomManager](./WSServerRoomManager.md) - For room-based communication and game state management
 
@@ -56,33 +56,7 @@ Creates a new WebSocket server instance.
       - `wsServer` (WSServer): The server instance
     - Returns: Object with custom metadata to store for the client, or `false` to reject the connection
   - `logLevel` (string, optional): Log level: `'none'`, `'error'`, `'warn'`, `'info'`, `'debug'`. Default: `'info'`
-  - `logger` (object, optional): External logger instance (e.g., winston, pino) with methods: `error`, `warn`, `info`, `debug`. Default: `null`
-
-**Example:**
-```javascript
-import { WSServer } from 'wsmini';
-
-// Note: Use WSServerPubSub or WSServerRoomManager instead in production
-const wsServer = new WSServer({
-  port: 8080,
-  origins: 'https://myapp.com',
-  maxNbOfClients: 500,
-  maxInputSize: 50000,
-  pingTimeout: 30000,
-  logLevel: 'info',
-  authCallback: (token, request, wsServer) => {
-    // Validate token and return custom metadata
-    if (token !== 'valid-secret-token') return false;
-
-    // Return custom metadata to store for this client
-    return {
-      username: 'user123',
-      role: 'admin',
-      connectedAt: Date.now()
-    };
-  }
-});
-```
+  - `logger` (object, optional): External logger instance with methods: `error`, `warn`, `info`, `debug`. Default: `null`
 
 ## Server Control
 
