@@ -330,7 +330,7 @@ export default class WSServerPubSub extends WSServer {
     if (typeof data?.name !== 'string') {
       return this.sendError(client, 'Invalid rpc name');
     }
-    if (!data?.data) {
+    if (!('data' in data)) {
       return this.sendError(client, 'Data is required');
     }
     if (typeof data?.id !== 'number') {
