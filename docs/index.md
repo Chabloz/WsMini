@@ -31,6 +31,7 @@ WsMini provides basic security features but requires additional implementation f
 
 #### Server API
 
+- [WSServer](./api/WSServer.md) - Base WebSocket server class (use WSServerPubSub or WSServerRoomManager instead)
 - [WSServerPubSub](./api/WSServerPubSub.md) - WebSocket server with PubSub/RPC capabilities
 - [WSServerRoomManager](./api/WSServerRoomManager.md) - Room-based WebSocket server extending WSServerPubSub
 - [WSServerGameRoom](./api/WSServerGameRoom.md) - Game room with fixed timestep loop and state synchronization

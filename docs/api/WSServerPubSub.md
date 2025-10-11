@@ -165,8 +165,11 @@ The returned channel object contains:
 - `usersCanPub` (boolean): Whether users can publish to this channel
 - `usersCanSub` (boolean): Whether users can subscribe to this channel
 - `hookPub` (function): The publish hook function
+- `hookPubPost` (function): The post-publish hook function
 - `hookSub` (function): The subscribe hook function
+- `hookSubPost` (function): The post-subscribe hook function
 - `hookUnsub` (function): The unsubscribe hook function
+- `hookUnsubPost` (function): The post-unsubscribe hook function
 - `clients` (Set): Set of WebSocket clients subscribed to this channel
 
 **Example:**
