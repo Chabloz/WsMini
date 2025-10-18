@@ -390,12 +390,16 @@ wsServer.broadcastOthersCmd(client, 'user-joined', {
 
 ## Server Control
 
-### `start()`
+### `start(options)`
 
 Starts the WebSocket server. Inherited from `WSServer`.
 
+**Parameters:**
+- `options` (object, optional): Additional options to pass to the underlying WebSocket server. See [WSServer.start()](./WSServer.md#startoptions) for details.
+
 **Example:**
 ```javascript
+// Basic start
 wsServer.start();
 ```
 

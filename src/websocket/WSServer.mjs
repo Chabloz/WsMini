@@ -47,8 +47,9 @@ export default class WSServer {
     this.server = null;
   }
 
-  start() {
+  start(options = {}) {
     this.server = new WebSocketServerOrigin({
+      ...options,
       port: this.port,
       origins: this.origins,
       maxNbOfClients: this.maxNbOfClients,

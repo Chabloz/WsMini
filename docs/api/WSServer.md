@@ -60,14 +60,34 @@ Creates a new WebSocket server instance.
 
 ## Server Control
 
-### `start()`
+### `start(options)`
 
 Starts the WebSocket server and begins accepting client connections.
 
+**Parameters:**
+- `options` (object, optional): Additional options to pass to the underlying WebSocket server. These options are passed to the `ws` library's `WebSocketServer` constructor. See the [ws documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) for available options.
+
+**Note:** The `port`, `origins`, and `maxNbOfClients` properties set in the `WSServer` constructor will override any corresponding values in the `options` parameter.
+
+**Common WebSocket Server Options:**
+- `server` (http.Server|https.Server): A pre-created Node.js HTTP/S server
+- `backlog` (number): Maximum length of the queue of pending connections
+- `perMessageDeflate` (boolean|object): Enable/disable permessage-deflate compression
+
+
+For a complete list of options, refer to the [ws library documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
+
 **Example:**
 ```javascript
+// Basic start
 wsServer.start();
-// Server is now running and accepting connections
+
+// Use with an existing HTTP server
+import http from 'http';
+const httpServer = http.createServer();
+httpServer.listen(8080);
+
+wsServer.start({ server: httpServer });
 ```
 
 ### `close()`
