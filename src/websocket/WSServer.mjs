@@ -48,16 +48,23 @@ export default class WSServer {
   }
 
   start(options = {}) {
-    this.server = new WebSocketServerOrigin({
+    const wsOptions = {
       ...options,
-      port: this.port,
       origins: this.origins,
       maxNbOfClients: this.maxNbOfClients,
-    });
+    };
+    if (!options.server && !options.noServer) wsOptions.port = this.port;
+
+    this.server = new WebSocketServerOrigin(wsOptions);
     this.server.on('connection', (client, request) => this.onConnection(client, request));
     this.server.on('close', () => this.close());
     this.pingInterval = setInterval(() => this.pingManagement(), this.pingTimeout);
-    this.log(`WebSocket Server started on port ${this.port}`);
+
+    if (options.server || options.noServer) {
+      this.log(`WebSocket Server started (using external HTTP server)`);
+    } else {
+      this.log(`WebSocket Server started on port ${this.port}`);
+    }
   }
 
   pingManagement() {

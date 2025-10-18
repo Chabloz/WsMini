@@ -44,14 +44,33 @@ The examples showcase:
 
 ### 1. RPC (Remote Procedure Calls)
 
+#### Variant A: Standalone Servers
+
 **Server**: [`server/rpc.mjs`](./server/rpc.mjs) - Port 8888
 **Client**: [`client/rpc.html`](./client/rpc.html) + [`client/rpc.js`](./client/rpc.js)
 
-Demonstrates:
+Requires a separate HTTP server (like `npx serve`) to serve the client files.
+
+#### Variant B: Integrated HTTP Server
+
+**Server**: [`server/rpc-http.mjs`](./server/rpc-http.mjs) - Port 8888
+**Client**: Served automatically at http://localhost:8888
+
+This example shows how to integrate WsMini with a Node.js HTTP server. The HTTP server serves the client files while the WebSocket server handles RPC communication on the same port.
+
+```bash
+# Run the integrated server
+node docs/examples/server/rpc-http.mjs
+
+# Then open http://localhost:8888 in your browser
+```
+
+**Demonstrates**:
 - Simple RPC calls with validation
 - Error handling using `WSServerError`
 - Broadcasting commands to all clients
 - Client-side promise handling
+- Integrating WebSocket with an existing HTTP server
 
 **Features**:
 - Add two numbers with server-side validation

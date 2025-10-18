@@ -87,8 +87,13 @@ import http from 'http';
 const httpServer = http.createServer();
 httpServer.listen(8080);
 
-wsServer.start({ server: httpServer });
+wsServer.start({
+  server: httpServer,
+  path: '/ws' // Optional: specify WebSocket path
+});
 ```
+
+For a complete example with HTTP server serving client files, see the [RPC with HTTP server example](../examples/server/rpc-http.mjs).
 
 ### `close()`
 

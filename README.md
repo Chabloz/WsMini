@@ -56,7 +56,7 @@ You will find complete examples demonstrating some of the features of WsMini in 
 
 ## Testing
 
-WsMini includes a test suite with 300 tests covering all components and features.
+WsMini includes a test suite with more than 300 tests covering all components and features.
 
 ### Running Tests
 
