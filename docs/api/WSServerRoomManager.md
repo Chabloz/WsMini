@@ -385,8 +385,8 @@ class CustomRoom extends WSServerRoom {
       throw new WSServerError('Room name not allowed');
     }
     // do not forget to validate the input received from the client
-    if (msg?.gameMode && !['normal', 'hardcore'].includes(msg.gameMode)) {
-      throw new WSServerError('Invalid game mode');
+    if (!msg?.gameMode || !['normal', 'hardcore'].includes(msg.gameMode)) {
+      throw new WSServerError('Invalid or missing game mode');
     }
     return {
       createdAt: Date.now(),
