@@ -52,9 +52,10 @@ Creates a new WebSocket server instance.
   - `authCallback` (function, optional): Authentication callback function. Default: `(token, request, wsServer) => ({})`
     - Parameters: `(token, request, wsServer)`
       - `token` (string|null): Authentication token sent by client via subprotocol
-      - `request` (http.IncomingMessage): The HTTP upgrade request
+      - `request` (http.IncomingMessage): The HTTP upgrade request. Contains headers including `request.headers.cookie`.
       - `wsServer` (WSServer): The server instance
     - Returns: Object with custom metadata to store for the client, or `false` to reject the connection
+    - **Note:** For cookie-based authentication (e.g., JWT in HTTP-only cookies), parse `request.headers.cookie` to extract and verify the authentication token.
   - `logLevel` (string, optional): Log level: `'none'`, `'error'`, `'warn'`, `'info'`, `'debug'`. Default: `'info'`
   - `logger` (object, optional): External logger instance with methods: `error`, `warn`, `info`, `debug`. Default: `null`
 

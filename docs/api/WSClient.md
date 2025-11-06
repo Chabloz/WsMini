@@ -51,17 +51,23 @@ const wsClient = new WSClient('ws://localhost:8888', 10000);
 Establishes connection to the WebSocket server.
 
 **Parameters:**
-- `token` (string, optional): Authentication token for server authentication.
+- `token` (string, optional): Authentication token for server authentication. The token is sent via WebSocket subprotocol during the handshake.
 
 **Returns:** `Promise` - Resolves when connection is established, rejects on error.
+
+**Note:** Authentication can also be handled via HTTP cookies. Cookies sent with the WebSocket handshake request are accessible in the server's `authCallback` via the `request.headers.cookie` parameter. This is useful for session-based authentication or JWT tokens stored in HTTP-only cookies.
 
 **Example:**
 ```javascript
 // Connect without authentication
 await wsClient.connect();
 
-// Connect with authentication token
+// Connect with authentication token (sent via subprotocol)
 await wsClient.connect('my-auth-token');
+
+// Connect with cookie-based authentication (cookies sent automatically by browser)
+// No token parameter needed - server reads cookies from request.headers.cookie
+await wsClient.connect();
 
 // Handle connection errors
 await wsClient.connect().catch(err => {
