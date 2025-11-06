@@ -47,6 +47,10 @@ Creates a new WebSocket PubSub server instance.
 
 **authCallback**: This function is called when a client connects. It must return an object with user metadata if authentication is successful, or `false` if authentication fails. The metadata will be added to the client object and can be used in RPCs and PubSub hooks. An `id` metadata will be automatically generated for the client if not provided.
 
+**Note:** Authentication can be handled via the `token` parameter (sent via WebSocket subprotocol) or via HTTP cookies accessible in `request.headers.cookie`.
+- For token-based authentication via subprotocol, see [WSClient.connect()](./WSClient.md#connecttoken) for how clients send the token.
+- For cookie-based authentication (particularly useful for JWT tokens in HTTP-only cookies), cookies are automatically sent by the browser during the WebSocket handshake and can be parsed from `request.headers.cookie`.
+
 **Example:**
 ```javascript
 import { WSServerPubSub, WSServerError } from 'wsmini';
