@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "ws": "^8.18.3"
+    "ws": "^8.20.0"
   },
   "name": "wsmini",
   "version": "1.2.0",
@@ -18,10 +18,10 @@
   },
   "devDependencies": {
     "c8": "^10.1.2",
-    "chai": "^6.2.0",
-    "jsdom": "^27.0.0",
-    "mocha": "^11.7.4",
-    "sinon": "^21.0.0",
+    "chai": "^6.2.2",
+    "jsdom": "^27.4.0",
+    "mocha": "^11.7.5",
+    "sinon": "^21.0.3",
     "sinon-chai": "^4.0.1"
   },
   "engines": {
