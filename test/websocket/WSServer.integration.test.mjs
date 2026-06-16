@@ -177,6 +177,11 @@ describe('WSServer Integration Tests', () => {
         sinon.match(/Error: Auth service down/),
         'error'
       );
+      expect(mockClient.send).to.have.been.calledOnce;
+      const payload = JSON.parse(mockClient.send.firstCall.args[0]);
+      expect(payload).to.deep.equal({ action: 'auth-failed' });
+      expect(mockClient.close).to.have.been.called;
+      expect(server.clients.size).to.equal(0);
 
       done();
     });

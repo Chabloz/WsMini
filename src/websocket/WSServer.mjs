@@ -129,6 +129,8 @@ export default class WSServer {
       var customMetadata = this.authCallback(token, request, this);
     } catch (e) {
       this.log(e.name + ': ' + e.message, 'error');
+      this.sendAuthFailed(client);
+      client.close();
       return false;
     }
 
