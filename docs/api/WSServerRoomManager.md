@@ -50,9 +50,10 @@ For the details of the `roomClass` option, see the documentation of the [Room Cl
   - `port` (number, optional): The port number to run the server on. Default: `443`
   - `maxNbOfClients` (number, optional): Maximum number of allowed clients. Default: `1000`
   - `maxInputSize` (number, optional): Maximum size of input messages in bytes. Default: `100000` (100KB)
+  - `maxBufferedAmount` (number, optional): Maximum outgoing bytes queued per client, including the next message. Default: `1048576` (1 MiB). Clients exceeding this limit are terminated.
   - `origins` (string, optional): Allowed origins. Default: `'*'`
   - `pingTimeout` (number, optional): The timeout in milliseconds for ping responses. Default: `30000`
-  - `authCallback` (function, optional): Authentication callback function. Default: `(token, request, wsServer) => ({})`
+  - `authCallback` (function, optional): Synchronous authentication callback returning a plain metadata object or `false`. Promises and other return types are rejected. Default: `(token, request, wsServer) => ({})`
   - `logLevel` (string, optional): Log level: 'none', 'error', 'warn', 'info', 'debug'. Default: `'info'`
   - `logger` (object, optional): External logger instance for logging. Default: `null`
   - `maxUsersByRoom` (number, optional): Maximum number of users per room. Default: `10`
@@ -139,7 +140,7 @@ Gets all clients in a specific room.
 **Parameters:**
 - `roomName` (string): The room name
 
-**Returns:** `array` - Array of client metadata objects
+**Returns:** `array` - Array of [client metadata objects](./WSServer.md#createclientmetadataclient-custommetadata)
 
 **Example:**
 ```javascript
@@ -372,7 +373,7 @@ You can throw a `WSServerError` to abort creation with an error message. The pro
 **Parameters:**
 - `name` (string): The room name
 - `msg` (any): Additional data sent by the client
-- `clientMeta` (object): Client metadata (null if created by server)
+- `clientMeta` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata) (null if created by server)
 - `client` (WebSocket): Client connection (null if created by server)
 
 **Returns:** `object|false` - Room metadata object or `false` to abort creation
@@ -402,10 +403,10 @@ Called when a client joins the room.
 
 **Parameters:**
 - `msg` (any): Additional data sent by the client
-- `clientMeta` (object): Client metadata
+- `clientMeta` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata)
 - `client` (WebSocket): Client connection
 
-**Returns:** `object|false` - Additional client metadata or `false` to abort join
+**Returns:** `object|false` - [Additional client metadata](./WSServer.md#createclientmetadataclient-custommetadata) or `false` to abort join
 
 **Example:**
 ```javascript
@@ -429,7 +430,7 @@ Called when a client sends a message to the room.
 
 **Parameters:**
 - `msg` (any): The message from the client
-- `clientMeta` (object): Client metadata
+- `clientMeta` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata)
 - `client` (WebSocket): Client connection
 
 **Returns:** `any` - The message to broadcast to all room clients
@@ -458,7 +459,7 @@ class CustomRoom extends WSServerRoom {
 Called when a client leaves the room.
 
 **Parameters:**
-- `clientMeta` (object): Client metadata
+- `clientMeta` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata)
 - `client` (WebSocket): Client connection
 
 **Example:**
@@ -492,13 +493,13 @@ class CustomRoom extends WSServerRoom {
 
 ### `onSendClient(clientMeta)`
 
-Called when sending client metadata to clients.
-You can use this to filter or transform the client metadata before the server sends it to other clients.
+Called when sending [client metadata](./WSServer.md#createclientmetadataclient-custommetadata) to clients.
+You can use this to filter or transform the [client metadata](./WSServer.md#createclientmetadataclient-custommetadata) before the server sends it to other clients.
 
 **Parameters:**
-- `clientMeta` (object): The client metadata
+- `clientMeta` (object): [The client metadata](./WSServer.md#createclientmetadataclient-custommetadata)
 
-**Returns:** `object` - The filtered client metadata to send
+**Returns:** `object` - [The filtered client metadata to send](./WSServer.md#createclientmetadataclient-custommetadata)
 
 **Example:**
 ```javascript

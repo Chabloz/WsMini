@@ -319,6 +319,8 @@ describe('WSServer', () => {
       server.pingManagement();
 
       expect(deadClient.terminate).to.have.been.called;
+      expect(server.clients.has(deadClient)).to.be.true;
+      server.onClose(deadClient);
       expect(server.clients.has(deadClient)).to.be.false;
       expect(aliveClient.ping).to.have.been.called;
       expect(aliveClient.isAlive).to.be.false;

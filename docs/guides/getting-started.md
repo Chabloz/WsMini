@@ -100,6 +100,8 @@ ws.rpc('add', {n1: 3, n2: 'a'}) // The promise will reject with an error because
 
 ### Server-side PubSub
 
+The `clientMetadata` argument passed to the hooks contains the client’s `id` and any custom properties returned by `authCallback`. See [`createClientMetadata`](../api/WSServer.md#createclientmetadataclient-custommetadata).
+
 ```javascript
 import { WSServerPubSub, WSServerError } from 'wsmini';
 

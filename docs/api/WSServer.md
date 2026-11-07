@@ -47,6 +47,7 @@ Creates a new WebSocket server instance.
   - `port` (number, optional): The port number to run the server on. Default: `443`
   - `maxNbOfClients` (number, optional): Maximum number of allowed clients. Default: `1000`
   - `maxInputSize` (number, optional): Maximum size of input messages in bytes. Default: `100000` (100KB)
+  - `maxBufferedAmount` (number, optional): Maximum outgoing bytes queued per client, including the next message. Default: `1048576` (1 MiB). Clients exceeding this limit are terminated.
   - `origins` (string, optional): Allowed origins for CORS. Use `'*'` for any origin or specify allowed origins. Default: `'*'`
   - `pingTimeout` (number, optional): The timeout in milliseconds for ping/pong keepalive mechanism. Default: `30000`
   - `authCallback` (function, optional): Authentication callback function. Default: `(token, request, wsServer) => ({})`
@@ -54,7 +55,7 @@ Creates a new WebSocket server instance.
       - `token` (string|null): Authentication token sent by client via subprotocol
       - `request` (http.IncomingMessage): The HTTP upgrade request. Contains headers including `request.headers.cookie`.
       - `wsServer` (WSServer): The server instance
-    - Returns: Object with custom metadata to store for the client, or `false` to reject the connection
+    - Returns: A plain object with [custom metadata](#createclientmetadataclient-custommetadata) to store for the client, or `false` to reject the connection. This callback must be synchronous. Promises, `null`, `undefined`, and other return types are rejected.
     - **Note:** For cookie-based authentication (e.g., JWT in HTTP-only cookies), parse `request.headers.cookie` to extract and verify the authentication token.
   - `logLevel` (string, optional): Log level: `'none'`, `'error'`, `'warn'`, `'info'`, `'debug'`. Default: `'info'`
   - `logger` (object, optional): External logger instance with methods: `error`, `warn`, `info`, `debug`. Default: `null`
@@ -69,6 +70,8 @@ Starts the WebSocket server and begins accepting client connections.
 - `options` (object, optional): Additional options to pass to the underlying WebSocket server. These options are passed to the `ws` library's `WebSocketServer` constructor. See the [ws documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) for available options.
 
 **Note:** The `port`, `origins`, and `maxNbOfClients` properties set in the `WSServer` constructor will override any corresponding values in the `options` parameter.
+
+`maxInputSize` is also enforced by the WebSocket transport, before complete messages are delivered to the application. A `maxPayload` option can lower this limit, but cannot increase or disable it (including with `maxPayload: 0`). Oversized messages close the connection with code `1009`.
 
 **Common WebSocket Server Options:**
 - `server` (http.Server|https.Server): A pre-created Node.js HTTP/S server
@@ -129,9 +132,9 @@ if (clientSocket) {
 
 ### `geClientsData()`
 
-Gets an array of all connected clients' metadata.
+Gets an array of all connected clients' [metadata](#createclientmetadataclient-custommetadata).
 
-**Returns:** `Array` - Array of client metadata objects
+**Returns:** `Array` - Array of [client metadata objects](#createclientmetadataclient-custommetadata)
 
 **Example:**
 ```javascript
@@ -147,7 +150,7 @@ for (const client of allClients) {
 
 ### `send(client, message)`
 
-Sends a message to a specific client. Only sends if the client connection is open.
+Sends a message to a specific client. Only sends if the client connection is open. If the queued outgoing bytes plus this message exceed `maxBufferedAmount`, the connection is terminated. The same limit applies to broadcasts, PubSub publications, and room messages sent through the server.
 
 **Parameters:**
 - `client` (WebSocket): The client WebSocket connection
@@ -193,7 +196,7 @@ Broadcasts a message to all clients except the specified one.
 // When a user joins, notify all other users
 wsServer.broadcastOthers(client, JSON.stringify({
   type: 'user-joined',
-  userId: wsServer.clients.get(client).id
+  id: wsServer.clients.get(client).id
 }));
 ```
 
@@ -258,7 +261,11 @@ The following methods are used internally by the server and typically don't need
 Manages the ping/pong keepalive mechanism. Automatically called at intervals defined by `pingTimeout`. Terminates clients that don't respond to pings.
 
 ### `createClientMetadata(client, customMetadata)`
-Creates metadata for a new client connection, combining a generated UUID with custom metadata from `authCallback`.
+Creates metadata for a new client connection and stores it in the [`clients`](#clients) Map, keyed by the WebSocket connection. This method is called automatically after the synchronous [`authCallback`](#constructor) succeeds.
+
+The metadata contains an `id` (a generated UUID) and all custom properties returned by `authCallback`, such as `nickname` or `isAdmin`. A custom `id` returned by `authCallback` overrides the generated UUID. `userId` is not generated by WsMini. It only exists if your application adds it.
+
+RPC callbacks and PubSub hooks receive this metadata object. The WebSocket connection itself is a separate object.
 
 **Parameters:**
 - `client` (WebSocket): The client WebSocket connection
@@ -268,7 +275,7 @@ Creates metadata for a new client connection, combining a generated UUID with cu
 Handles new client connections, including:
 - Extracting authentication token from subprotocol
 - Calling `authCallback` for authentication
-- Creating client metadata
+- Creating [client metadata](#createclientmetadataclient-custommetadata)
 - Setting up event listeners (message, close, error, pong)
 
 ### `onMessage(client, message)`
@@ -288,7 +295,7 @@ Handles pong responses from clients, marking them as alive for the keepalive mec
 ### `clients`
 **Type:** `Map<WebSocket, Object>`
 
-A Map containing all connected clients and their metadata. Each entry maps a WebSocket client to an object containing:
+A Map containing all connected clients and their [metadata](#createclientmetadataclient-custommetadata). Each entry maps a WebSocket client to an object containing:
 - `id` (string): Auto-generated UUID for the client
 - Additional custom properties from `authCallback`
 
