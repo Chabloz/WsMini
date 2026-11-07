@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { once } from 'node:events';
 import { JSDOM } from 'jsdom';
 import WebSocket from 'ws';
 import WSServerRoomManager from '../../src/websocket/WSServerRoomManager.mjs';
@@ -7,13 +8,15 @@ import WSClientRoom from '../../src/websocket/WSClientRoom.js';
 
 describe('WSClient-WSServer Integration Tests', () => {
     let server;
-    let serverPort = 8080;
+    let serverPort;
+    let originalGlobals;
     let dom;
     let client;
     let clientRoom;
 
     // Setup browser environment
     before(() => {
+        originalGlobals = Object.fromEntries(['window', 'document', 'WebSocket', 'btoa', 'atob', 'TextEncoder', 'TextDecoder'].map(key => [key, Object.getOwnPropertyDescriptor(global, key)]));
         dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
             url: 'http://localhost:8080',
             pretendToBeVisual: true,
@@ -32,18 +35,15 @@ describe('WSClient-WSServer Integration Tests', () => {
         if (dom) {
             dom.window.close();
         }
-        delete global.window;
-        delete global.document;
-        delete global.WebSocket;
-        delete global.btoa;
-        delete global.atob;
-        delete global.TextEncoder;
-        delete global.TextDecoder;
+        for (const [key, descriptor] of Object.entries(originalGlobals)) {
+            if (descriptor) Object.defineProperty(global, key, descriptor);
+            else delete global[key];
+        }
     });
 
     beforeEach(async () => {
-        // Start server (synchronous)
-        server = new WSServerRoomManager({ port: serverPort });
+        // Let the OS select an available port
+        server = new WSServerRoomManager({ port: 0 });
 
         // Add test RPC
         server.addRpc('echo', (data) => data);
@@ -54,7 +54,8 @@ describe('WSClient-WSServer Integration Tests', () => {
         server.start();
 
         // Wait for server to be ready
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await once(server.server, 'listening');
+        serverPort = server.server.address().port;
 
         // Create client
         client = new WSClient(`ws://localhost:${serverPort}`);

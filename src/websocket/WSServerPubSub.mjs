@@ -193,16 +193,16 @@ export default class WSServerPubSub extends WSServer {
   }
 
   onMessage(client, message) {
+    if (!this.validateMessageSize(client, message)) return false;
     message = message.toString();
-    if (message.length > this.maxInputSize) {
-      this.log(`Client ${this.clients.get(client)?.id} sent a message that is too large`, 'warn');
-      client.close();
-      return false;
-    }
 
     try {
       var data = JSON.parse(message);
     } catch (e) {
+      return this.sendError(client, 'Invalid data');
+    }
+
+    if (data === null || typeof data !== 'object' || Array.isArray(data)) {
       return this.sendError(client, 'Invalid data');
     }
 

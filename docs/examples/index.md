@@ -96,7 +96,7 @@ const result = await ws.rpc('add', {n1: 5, n2: 3});
 
 Demonstrates:
 - Channel-based messaging
-- User metadata handling
+- [User metadata](../api/WSServer.md#createclientmetadataclient-custommetadata) handling
 - Message transformation hooks
 - Real-time chat interface
 

@@ -39,13 +39,14 @@ Creates a new WebSocket PubSub server instance.
   - `port` (number, optional): The port number to run the server on. Default: `443`
   - `maxNbOfClients` (number, optional): Maximum number of allowed clients. Default: `1000`
   - `maxInputSize` (number, optional): Maximum size of input messages in bytes. Default: `100000` (100KB)
+  - `maxBufferedAmount` (number, optional): Maximum outgoing bytes queued per client, including the next message. Default: `1048576` (1 MiB). Clients exceeding this limit are terminated.
   - `origins` (string, optional): Allowed origins. Default: `'*'`
   - `pingTimeout` (number, optional): The timeout in milliseconds for ping responses. Default: `30000`
   - `authCallback` (function, optional): Authentication callback function `(token, request, wsServer) => {}`. Default: `(token, request, wsServer) => ({})`
   - `logLevel` (string, optional): Log level: 'none', 'error', 'warn', 'info', 'debug'. Default: `'info'`
   - `logger` (object, optional): External logger instance for logging. Default: `null`
 
-**authCallback**: This function is called when a client connects. It must return an object with user metadata if authentication is successful, or `false` if authentication fails. The metadata will be added to the client object and can be used in RPCs and PubSub hooks. An `id` metadata will be automatically generated for the client if not provided.
+**authCallback**: This function is called when a client connects. It must synchronously return a plain object with user metadata if authentication is successful, or `false` if authentication fails. Promises and other return types are rejected. The returned properties are combined with an automatically generated `id` by [`createClientMetadata`](./WSServer.md#createclientmetadataclient-custommetadata). This metadata object is stored in the server’s `clients` Map and passed to RPCs and PubSub hooks.
 
 **Note:** Authentication can be handled via the `token` parameter (sent via WebSocket subprotocol) or via HTTP cookies accessible in `request.headers.cookie`.
 - For token-based authentication via subprotocol, see [WSClient.connect()](./WSClient.md#connecttoken) for how clients send the token.
@@ -89,6 +90,8 @@ Adds a new channel to the server. Channels allow clients to subscribe and publis
   - `hookUnsub` (function, optional): Hook called before unsubscribing a client. Default: `(client, wsServer) => null`
   - `hookUnsubPost` (function, optional): Hook called after a successful unsubscription. Errors thrown in this hook are logged but do not affect the unsubscription. Default: `(client, wsServer) => null`
 
+In every hook, `client` is the [client metadata](./WSServer.md#createclientmetadataclient-custommetadata) object, including `id` and the custom properties returned by `authCallback`.
+
 **Returns:** `boolean` - `true` if channel was added successfully, `false` if channel already exists
 
 **Example:**
@@ -114,7 +117,7 @@ wsServer.addChannel('admin-chat', {
     // Transform message before broadcasting
     return {
       ...msg,
-      from: client.userId,
+      from: client.id,
       timestamp: Date.now()
     };
   },
@@ -131,7 +134,7 @@ wsServer.addChannel('admin-chat', {
     console.log(`User ${client.id} joined admin chat`);
   },
   hookUnsub: (client, wsServer) => {
-    console.log(`User ${client.userId} unsubscribed from admin chat`);
+    console.log(`User ${client.id} unsubscribed from admin chat`);
   },
   hookUnsubPost: (client, wsServer) => {
     // Called after successful unsubscription
@@ -218,12 +221,12 @@ if (clients) {
 
 ### `getChannelClientsData(chanName)`
 
-Gets an array of client metadata objects for all clients subscribed to a specific channel.
+Gets an array of [client metadata objects](./WSServer.md#createclientmetadataclient-custommetadata) for all clients subscribed to a specific channel.
 
 **Parameters:**
 - `chanName` (string): The channel name
 
-**Returns:** `Array|null` - Array of client metadata objects, or `null` if channel doesn't exist
+**Returns:** `Array|null` - Array of [client metadata objects](./WSServer.md#createclientmetadataclient-custommetadata), or `null` if channel doesn't exist
 
 **Example:**
 ```javascript
@@ -290,6 +293,8 @@ Adds a Remote Procedure Call (RPC) endpoint that clients can invoke.
 - `name` (string): The RPC name
 - `callback` (function): The RPC callback function
   - Parameters: `(data, clientMetadata, client, wsServer)`
+    - `clientMetadata` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata), including `id` and custom properties returned by `authCallback`
+    - `client` (WebSocket): The client WebSocket connection
   - Returns: The response to send back to the client
   - Can throw `WSServerError` to send an error response (The promise will then be rejected with the error message on the client side)
 

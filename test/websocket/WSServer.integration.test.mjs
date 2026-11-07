@@ -125,12 +125,12 @@ describe('WSServer Integration Tests', () => {
         headers: { 'sec-websocket-protocol': `protocol1, ${token}` }
       };
       // atob is needed to decode the base64 token in the server
-      global.atob = (str) => Buffer.from(str, 'base64').toString('binary');
-      global.TextDecoder = class {
+      sandbox.stub(global, 'atob').callsFake((str) => Buffer.from(str, 'base64').toString('binary'));
+      sandbox.stub(global, 'TextDecoder').value(class {
         decode(bytes) {
           return Buffer.from(bytes).toString('utf8');
         }
-      };
+      });
       server.onConnection(mockClient, mockRequest);
 
       expect(authCallback).to.have.been.calledWith('valid-token');
@@ -293,6 +293,8 @@ describe('WSServer Integration Tests', () => {
       server.pingManagement();
 
       expect(client.terminate).to.have.been.called;
+      expect(server.clients.has(client)).to.be.true;
+      server.onClose(client);
       expect(server.clients.has(client)).to.be.false;
     });
   });

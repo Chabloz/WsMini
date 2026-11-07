@@ -165,7 +165,7 @@ When you successfully join or create a room, you receive a `Room` object that pr
 
 - `name` (string): The room name
 - `meta` (object): Room metadata from the server
-- `clients` (array): List of clients in the room (contains client IDs and metadata send by the server)
+- `clients` (array): List of clients in the room (contains client IDs and [metadata](./WSServer.md#createclientmetadataclient-custommetadata), filtered by [`onSendClient`](./WSServerRoomManager.md#onsendclientclientmeta))
 - `wsClient` (WSClientRoom): Reference to the parent WSClientRoom instance
 
 ### Room Methods

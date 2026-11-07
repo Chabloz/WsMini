@@ -359,7 +359,7 @@ Handle client commands by creating methods with the prefix `onCmd` followed by t
 
 **Parameters:**
 - `msg` (any): Command data from client
-- `clientMeta` (object): Client metadata
+- `clientMeta` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata)
 - `client` (WebSocket): Client connection
 
 **Example:**
