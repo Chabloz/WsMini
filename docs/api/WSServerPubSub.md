@@ -42,15 +42,18 @@ Creates a new WebSocket PubSub server instance.
   - `maxBufferedAmount` (number, optional): Maximum outgoing bytes queued per client, including the next message. Default: `1048576` (1 MiB). Clients exceeding this limit are terminated.
   - `origins` (string, optional): Allowed origins. Default: `'*'`
   - `pingTimeout` (number, optional): The timeout in milliseconds for ping responses. Default: `30000`
+  - `authTimeout` (number, optional): Maximum authentication wait in milliseconds. Default: `10000`. Must be a positive 32-bit integer.
   - `authCallback` (function, optional): Authentication callback function `(token, request, wsServer) => {}`. Default: `(token, request, wsServer) => ({})`
   - `logLevel` (string, optional): Log level: 'none', 'error', 'warn', 'info', 'debug'. Default: `'info'`
   - `logger` (object, optional): External logger instance for logging. Default: `null`
 
-**authCallback**: This function is called when a client connects. It must synchronously return a plain object with user metadata if authentication is successful, or `false` if authentication fails. Promises and other return types are rejected. The returned properties are combined with an automatically generated `id` by [`createClientMetadata`](./WSServer.md#createclientmetadataclient-custommetadata). This metadata object is stored in the server’s `clients` Map and passed to RPCs and PubSub hooks.
+**authCallback**: This function is called when a client connects. It must return a plain object with user metadata if authentication is successful, or `false` if authentication fails. Both synchronous and asynchronous callbacks are supported. Promises are awaited and their resolved values are validated. Thrown errors and rejected Promises reject the connection. The returned properties are combined with an automatically generated `id` by [`createClientMetadata`](./WSServer.md#createclientmetadataclient-custommetadata). This metadata object is stored in the server’s `clients` Map and passed to RPCs and PubSub hooks.
 
 **Note:** Authentication can be handled via the `token` parameter (sent via WebSocket subprotocol) or via HTTP cookies accessible in `request.headers.cookie`.
 - For token-based authentication via subprotocol, see [WSClient.connect()](./WSClient.md#connecttoken) for how clients send the token.
 - For cookie-based authentication (particularly useful for JWT tokens in HTTP-only cookies), cookies are automatically sent by the browser during the WebSocket handshake and can be parsed from `request.headers.cookie`.
+
+Authentication options, timeout behavior, and an async callback example are described in [WSServer authentication options](./WSServer.md#constructor).
 
 **Example:**
 ```javascript

@@ -53,7 +53,8 @@ For the details of the `roomClass` option, see the documentation of the [Room Cl
   - `maxBufferedAmount` (number, optional): Maximum outgoing bytes queued per client, including the next message. Default: `1048576` (1 MiB). Clients exceeding this limit are terminated.
   - `origins` (string, optional): Allowed origins. Default: `'*'`
   - `pingTimeout` (number, optional): The timeout in milliseconds for ping responses. Default: `30000`
-  - `authCallback` (function, optional): Synchronous authentication callback returning a plain metadata object or `false`. Promises and other return types are rejected. Default: `(token, request, wsServer) => ({})`
+  - `authTimeout` (number, optional): Maximum authentication wait in milliseconds. Default: `10000`. Must be a positive 32-bit integer.
+  - `authCallback` (function, optional): Synchronous or asynchronous authentication callback returning a plain metadata object or `false`, directly or through a Promise. Default: `(token, request, wsServer) => ({})`
   - `logLevel` (string, optional): Log level: 'none', 'error', 'warn', 'info', 'debug'. Default: `'info'`
   - `logger` (object, optional): External logger instance for logging. Default: `null`
   - `maxUsersByRoom` (number, optional): Maximum number of users per room. Default: `10`
@@ -66,6 +67,8 @@ For the details of the `roomClass` option, see the documentation of the [Room Cl
   - `autoDeleteEmptyRoom` (boolean, optional): Whether empty rooms are automatically deleted. Default: `true`
   - `autoSendRoomListOnUsersChange` (boolean, optional): Whether to send room list updates on user changes. Default: `true`
   - `syncMode` (string, optional): Synchronization mode: 'immediate', 'immediate-other', 'patch'. Default: `'immediate'` (or `'patch'` for game rooms)
+
+Authentication options, timeout behavior, and an async callback example are described in [WSServer authentication options](./WSServer.md#constructor).
 
 **Example:**
 ```javascript

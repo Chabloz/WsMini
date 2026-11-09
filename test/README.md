@@ -12,7 +12,9 @@ test/
 │   ├── WSClient.test.mjs      # Unit tests for WSClient browser class
 │   ├── WSClientRoom.test.mjs  # Unit tests for WSClientRoom browser class
 │   ├── WSServer.test.mjs      # Unit tests for WSServer base class
-│   ├── WSServer.integration.test.mjs  # Integration tests for WSServer
+│   ├── WSServer.integration.test.mjs  # Mock-based lifecycle tests for WSServer
+│   ├── WSServer.auth.test.mjs         # Async authentication, timeout, and cancellation tests
+│   ├── WSServer.security.test.mjs     # Security regression tests
 │   ├── WSClientServer.integration.test.mjs  # Client-Server integration tests
 │   ├── WSServerPubSub.test.mjs        # Unit tests for WSServerPubSub
 │   ├── WSServerRoomManager.test.mjs   # Unit tests for WSServerRoomManager
@@ -91,11 +93,37 @@ Tests individual methods and functionality of the WSServer base class in isolati
 
 ### Integration Tests (`WSServer.integration.test.mjs`)
 
-Tests the WSServer class in more realistic scenarios:
+Tests WSServer lifecycle and message handling with mocked sockets. Calls to the asynchronous `onConnection` method are awaited:
 
 - **Server Connection Lifecycle**: Tests client connections, authentication flow
-- **Message Flow**: Tests actual message broadcasting between clients
+- **Message Flow**: Tests message broadcasting between mocked clients
 - **Ping/Pong Mechanism**: Tests the keepalive mechanism
+
+### Authentication Tests (`WSServer.auth.test.mjs`)
+
+Tests synchronous/asynchronous authentication using mocks, fake timers, and a real WebSocket connection:
+
+- **Async Metadata**: Accepts resolved metadata in WSServer, WSServerPubSub, and WSServerRoomManager, including propagation of `authTimeout`
+- **Invalid Results**: Rejects Promises resolving to invalid metadata
+- **Pending Requests**: Ignores application messages before authentication succeeds, then permits normal RPC calls
+- **Timeouts**: Terminates stalled authentication, handles late resolutions/rejections, and cleans up timers and temporary listeners
+- **Disconnection**: Cancels authentication when the client disconnects and prevents late registration
+- **Shutdown/Restart**: Terminates pending sockets and prevents an old authentication result from registering a client after restart
+- **Event Listener Errors**: Handles unexpected rejected Promises from `onConnection`
+- **Configuration**: Rejects invalid `authTimeout` values
+
+See [authentication options](../docs/api/WSServer.md#constructor) for the callback contract and timeout behavior. The timeout cancels the server's wait, not the callback's underlying database or HTTP request.
+
+### Security Regression Tests (`WSServer.security.test.mjs`)
+
+Tests protections introduced for authentication, message sizes, slow clients, and departure hooks:
+
+- **Authentication Validation**: Rejects invalid synchronous metadata, async refusals, rejected Promises, and malformed base64 tokens. Accepts plain objects, including those with a null prototype
+- **Incoming Limits**: Counts UTF-8 bytes before decoding and caps the transport's `maxPayload`, including when set to zero
+- **Fragmented Messages**: Uses a real WebSocket connection to verify oversized fragmented messages close with code `1009` before application dispatch
+- **Outgoing Limits**: Terminates slow clients exceeding `maxBufferedAmount` while still delivering to healthy clients across base, PubSub, and room-manager servers
+- **JSON Validation**: Rejects null and non-object JSON messages without throwing
+- **Heartbeat Cleanup**: Uses a real connection to verify `hookUnsub` receives the client ID after a heartbeat timeout and the client is removed from the channel
 
 ### Client-Server Integration Tests (`WSClientServer.integration.test.mjs`)
 
@@ -206,18 +234,18 @@ Client tests use additional mocking infrastructure:
 
 ## Coverage
 
-The test suite provides comprehensive coverage of all WebSocket components with **93.3% overall statement coverage**:
+Latest local run: **360 passing tests** and **93.68% overall statement coverage**. Regenerate these measurements with `npm run test:coverage`, which also writes the HTML report to `coverage/index.html`.
 
 ### Coverage Summary
-- **All files**: 93.3% statements, 89.93% branches, 92.77% functions, 93.3% lines
+- **All files**: 93.68% statements, 89.21% branches, 94.14% functions, 93.68% lines
 - **WebSocketServerOrigin**: 100% coverage (41 comprehensive tests)
 - **WSServerError**: 100% coverage (17 tests covering all error scenarios)
-- **WSServerPubSub**: 95.55% coverage (extensive authentication, command, and error handling tests)
-- **WSServerRoomManager**: 82.5% coverage (room management, cleanup, and messaging tests)
-- **WSServer**: 99.05% coverage (comprehensive base functionality tests)
-- **WSClient**: 98.78% coverage (browser client functionality tests)
+- **WSServerPubSub**: 96.29% coverage (extensive authentication, command, and error handling tests)
+- **WSServerRoomManager**: 82.57% coverage (room management, cleanup, and messaging tests)
+- **WSServer**: 97.95% coverage (comprehensive base functionality tests)
+- **WSClient**: 98.81% coverage (browser client functionality tests)
 - **WSClientRoom**: 100% coverage (room-based client functionality tests)
-- **WSServerGameRoom**: 96.81% coverage (game loop and timing tests)
+- **WSServerGameRoom**: 96.66% coverage (game loop and timing tests)
 - **WSServerRoom**: 87.5% coverage (room base class tests)
 
 ### WSClient Browser Class
@@ -240,7 +268,9 @@ The test suite provides comprehensive coverage of all WebSocket components with 
 - ✅ Error conditions and edge cases
 - ✅ Client lifecycle management
 - ✅ Message processing and broadcasting
-- ✅ Authentication flows
+- ✅ Synchronous/asynchronous authentication, invalid results, and rejected Promises
+- ✅ Authentication timeouts, disconnection, and shutdown/restart cleanup
+- ✅ Incoming byte limits, outgoing buffer limits, and fragmented-message rejection
 - ✅ Ping/pong mechanism
 
 ### WSServerPubSub
@@ -289,7 +319,7 @@ The test suite provides comprehensive coverage of all WebSocket components with 
 - ✅ Error throwing and catching
 - ✅ Error serialization and comparison
 
-**Total Test Count**: 318 tests across all components (40+ client tests, 30+ client room tests, 5 client-server integration tests, 150+ server tests, 41 origin tests, 17 error tests)
+**Total Test Count**: 360 tests across all components, including authentication and security regression tests.
 
 ## Dependencies
 

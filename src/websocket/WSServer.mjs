@@ -15,10 +15,10 @@ export default class WSServer {
    * @param {number} [options.maxBufferedAmount=1048576] - Maximum queued outgoing bytes per client, including the next message.
    * @param {string} [options.origins='*'] - Allowed origins.
    * @param {number} [options.pingTimeout=30000] - The timeout in milliseconds for ping responses.
+   * @param {number} [options.authTimeout=10000] - Maximum authentication wait in milliseconds.
    * @param {Function} [options.authCallback=(token, request, wsServer) => {}] - A callback function to authenticate new clients.
    * The function receives the auth token (if specified in the last subprotocol), the request object and the WS server instance.
-   * The synchronous function MUST return a plain object to store in client metadata or false to reject the connection.
-   * Promises and other return values are rejected.
+   * The function MUST return a plain metadata object or false, directly or through a Promise.
    * For example, you can return {isAdmin: true} to store {isAdmin: true} in the client metadata.
    * Return {} if you don't need to store any additional information.
    * @param {string} [options.logLevel='info'] - Log level: 'none', 'error', 'warn', 'info', 'debug'.
@@ -31,6 +31,7 @@ export default class WSServer {
     maxBufferedAmount = 1048576,
     origins = '*',
     pingTimeout = 30000,
+    authTimeout = 10000,
     authCallback = (token, request, wsServer) => ({}),
     logLevel = 'info',
     logger = null,
@@ -51,6 +52,11 @@ export default class WSServer {
     this.origins = origins;
     this.pingTimeout = pingTimeout;
     this.pingInterval = null;
+    if (!Number.isInteger(authTimeout) || authTimeout <= 0 || authTimeout > 2147483647) {
+      throw new Error('authTimeout must be a positive 32-bit integer');
+    }
+    this.authTimeout = authTimeout;
+    this.pendingAuth = new Map();
     this.authCallback = authCallback;
     this.logger = logger;
     this.clients = new Map();
@@ -71,8 +77,16 @@ export default class WSServer {
     if (!options.server && !options.noServer) wsOptions.port = this.port;
 
     this.server = new WebSocketServerOrigin(wsOptions);
-    this.server.on('connection', (client, request) => this.onConnection(client, request));
-    this.server.on('close', () => this.close());
+    this.server.on('connection', (client, request) => {
+      this.onConnection(client, request).catch(error => {
+        this.log(`Connection failed: ${error?.message}`, 'error');
+        client.terminate();
+      });
+    });
+    const startedServer = this.server;
+    this.server.on('close', () => {
+      if (this.server === startedServer) this.close();
+    });
     this.pingInterval = setInterval(() => this.pingManagement(), this.pingTimeout);
 
     if (options.server || options.noServer) {
@@ -96,11 +110,17 @@ export default class WSServer {
   }
 
   close() {
+    for (const [client, cancel] of this.pendingAuth) {
+      cancel();
+      this.pendingAuth.delete(client);
+      client.terminate();
+    }
     if (this.server === null) return;
     for (const client of this.clients.keys()) client.close();
     clearInterval(this.pingInterval);
-    this.server.close(() => this.log('Server closed'));
+    const closingServer = this.server;
     this.server = null;
+    closingServer.close(() => this.log('Server closed'));
   }
 
   createClientMetadata(client, customMetadata) {
@@ -128,9 +148,29 @@ export default class WSServer {
     }
   }
 
-  onConnection(client, request) {
+  async onConnection(client, request) {
     // Handle socket errors even when authentication is rejected.
     client.on('error', (error) => this.onError(client, error));
+
+    const connectionServer = this.server;
+    let cancelled = false;
+    let timedOut = false;
+    let timer;
+    let cancel;
+    const interrupted = new Promise((resolve, reject) => {
+      cancel = () => {
+        cancelled = true;
+        reject(new Error('Authentication cancelled'));
+      };
+      timer = setTimeout(() => {
+        timedOut = true;
+        reject(new Error('Authentication timed out'));
+      }, this.authTimeout);
+    });
+    // Attach a rejection handler before invoking user code, which may close the server.
+    interrupted.catch(() => {});
+    this.pendingAuth.set(client, cancel);
+    client.on('close', cancel);
 
     let customMetadata;
     try {
@@ -141,22 +181,28 @@ export default class WSServer {
         if (protocols.length > 1) token = bytesBase64Decode(protocols[protocols.length - 1]);
       }
 
-      customMetadata = this.authCallback(token, request, this);
-      if (customMetadata && typeof customMetadata.then === 'function') {
-        // Observe rejections so a mistaken async callback cannot crash the process.
-        Promise.resolve(customMetadata).catch(() => {});
-        throw new Error('authCallback must be synchronous');
-      }
+      customMetadata = await Promise.race([
+        this.authCallback(token, request, this),
+        interrupted,
+      ]);
+      if (cancelled || client.readyState !== WebSocket.OPEN || this.server !== connectionServer) return false;
       if (customMetadata !== false &&
           (customMetadata === null || typeof customMetadata !== 'object' ||
            ![Object.prototype, null].includes(Object.getPrototypeOf(customMetadata)))) {
         throw new Error('authCallback must return a plain object or false');
       }
     } catch (error) {
-      this.log(`${error?.name ?? 'Error'}: ${error?.message ?? 'Authentication failed'}`, 'error');
-      this.sendAuthFailed(client);
-      client.close();
+      if (!cancelled) this.log(`${error?.name ?? 'Error'}: ${error?.message ?? 'Authentication failed'}`, 'error');
+      if (!cancelled && client.readyState === WebSocket.OPEN) {
+        this.sendAuthFailed(client);
+        if (timedOut) client.terminate();
+        else client.close();
+      }
       return false;
+    } finally {
+      clearTimeout(timer);
+      client.removeListener?.('close', cancel);
+      this.pendingAuth.delete(client);
     }
 
     if (customMetadata === false) {

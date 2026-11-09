@@ -33,39 +33,39 @@ describe('WSServer security regressions', () => {
   });
 
   for (const value of [undefined, null, true, 1, 'user', [], new Date()]) {
-    it(`rejects invalid authentication metadata (${String(value)})`, () => {
+    it(`rejects invalid authentication metadata (${String(value)})`, async () => {
       server = new WSServer({ logLevel: 'none', authCallback: () => value });
       const client = mockClient();
-      expect(server.onConnection(client, { headers: {} })).to.equal(false);
+      expect(await server.onConnection(client, { headers: {} })).to.equal(false);
       expect(server.clients.size).to.equal(0);
       expect(client.close).to.have.been.calledOnce;
       expect(() => client.emit('error', new Error('socket error'))).not.to.throw();
     });
   }
 
-  for (const callback of [async () => false, async () => ({}), async () => { throw new Error('denied'); }]) {
-    it('rejects async authentication callbacks and consumes promise rejections', async () => {
+  for (const callback of [async () => false, async () => { throw new Error('denied'); }]) {
+    it('rejects asynchronous refusals and authentication errors', async () => {
       server = new WSServer({ logLevel: 'none', authCallback: callback });
       const client = mockClient();
-      expect(server.onConnection(client, { headers: {} })).to.equal(false);
+      expect(await server.onConnection(client, { headers: {} })).to.equal(false);
       expect(server.clients.size).to.equal(0);
-      await new Promise(resolve => setImmediate(resolve));
+      expect(client.close).to.have.been.calledOnce;
     });
   }
 
-  it('rejects malformed base64 without invoking authentication or throwing', () => {
+  it('rejects malformed base64 without invoking authentication or throwing', async () => {
     const authCallback = sinon.spy(() => ({}));
     server = new WSServer({ logLevel: 'none', authCallback });
     const client = mockClient();
-    expect(server.onConnection(client, { headers: { 'sec-websocket-protocol': 'wsmini, !' } })).to.equal(false);
+    expect(await server.onConnection(client, { headers: { 'sec-websocket-protocol': 'wsmini, !' } })).to.equal(false);
     expect(authCallback).not.to.have.been.called;
     expect(client.close).to.have.been.calledOnce;
   });
 
-  it('accepts plain authentication metadata including a null prototype', () => {
+  it('accepts plain authentication metadata including a null prototype', async () => {
     server = new WSServer({ logLevel: 'none', authCallback: () => Object.assign(Object.create(null), { role: 'user' }) });
     const client = mockClient();
-    server.onConnection(client, { headers: {} });
+    await server.onConnection(client, { headers: {} });
     expect(server.clients.get(client)).to.include({ role: 'user' });
     expect(server.clients.get(client).id).to.be.a('string');
   });
