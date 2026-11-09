@@ -41,7 +41,7 @@ describe('WSServer Integration Tests', () => {
         this.pingInterval = setInterval(() => {}, 1000);
 
         // Simulate connection event
-        setTimeout(() => {
+        setTimeout(async () => {
           const mockClient = {
             readyState: WebSocket.OPEN,
             isAlive: true,
@@ -56,7 +56,7 @@ describe('WSServer Integration Tests', () => {
             headers: { 'sec-websocket-protocol': '' }
           };
 
-          this.onConnection(mockClient, mockRequest);
+          await this.onConnection(mockClient, mockRequest);
 
           expect(this.clients.size).to.equal(1);
           expect(this.clients.has(mockClient)).to.be.true;
@@ -72,7 +72,7 @@ describe('WSServer Integration Tests', () => {
       server.start();
     });
 
-    it('should handle authentication failure', (done) => {
+    it('should handle authentication failure', async () => {
       server = new WSServer({
         port: TEST_PORT,
         logLevel: 'none',
@@ -90,7 +90,7 @@ describe('WSServer Integration Tests', () => {
         headers: { 'sec-websocket-protocol': '' }
       };
 
-      server.onConnection(mockClient, mockRequest);
+      await server.onConnection(mockClient, mockRequest);
 
       expect(mockClient.send).to.have.been.calledOnce;
       const payload = JSON.parse(mockClient.send.firstCall.args[0]);
@@ -98,10 +98,9 @@ describe('WSServer Integration Tests', () => {
       expect(mockClient.close).to.have.been.called;
       expect(server.clients.size).to.equal(0);
 
-      done();
     });
 
-    it('should handle authentication with token', (done) => {
+    it('should handle authentication with token', async () => {
       const authCallback = sandbox.spy((token) => {
         return token === 'valid-token' ? { userId: 'test-user' } : false;
       });
@@ -131,7 +130,7 @@ describe('WSServer Integration Tests', () => {
           return Buffer.from(bytes).toString('utf8');
         }
       });
-      server.onConnection(mockClient, mockRequest);
+      await server.onConnection(mockClient, mockRequest);
 
       expect(authCallback).to.have.been.calledWith('valid-token');
       expect(mockClient.send).to.have.been.calledOnce;
@@ -143,10 +142,9 @@ describe('WSServer Integration Tests', () => {
       expect(payload.id).to.equal(metadata.id);
       expect(metadata.userId).to.equal('test-user');
 
-      done();
     });
 
-    it('should handle authentication callback errors', (done) => {
+    it('should handle authentication callback errors', async () => {
       const authCallback = sandbox.spy(() => {
         throw new Error('Auth service down');
       });
@@ -170,7 +168,7 @@ describe('WSServer Integration Tests', () => {
         headers: { 'sec-websocket-protocol': '' }
       };
 
-      const result = server.onConnection(mockClient, mockRequest);
+      const result = await server.onConnection(mockClient, mockRequest);
 
       expect(result).to.be.false;
       expect(logSpy).to.have.been.calledWith(
@@ -183,7 +181,6 @@ describe('WSServer Integration Tests', () => {
       expect(mockClient.close).to.have.been.called;
       expect(server.clients.size).to.equal(0);
 
-      done();
     });
   });
 
