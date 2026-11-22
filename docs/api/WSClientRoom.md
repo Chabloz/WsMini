@@ -188,6 +188,8 @@ room.send({ message: 'Hello chat room!' });
 Sends a command to the room (fire and forget). The command is processed by the server and can trigger specific actions.
 It will fail if the command is not recognized by the server.
 
+The server handles the command through an [`onCmdXxx` method](./WSServerRoomManager.md#oncmdxxxmsg-clientmeta-client) in its `roomClass`, for example `onCmdReady` for `ready`. This also works with ordinary rooms. Depending on `syncMode`, the handler's return value is automatically broadcast as a room message and received with `room.onMessage`. This method does not return a response Promise. Server refusals are reported through the `ws:error` event on the `WSClientRoom` instance.
+
 **Parameters:**
 - `cmd` (string): The command name.
 - `data` (object, optional): The command data. Default: `{}`.
@@ -310,6 +312,8 @@ wsClient.roomSend('game-room', {
 
 Sends a command to the room (fire and forget). The command is processed by the server and can trigger specific actions.
 It will fail if the command is not recognized by the server.
+
+The server handles the command through an [`onCmdXxx` method](./WSServerRoomManager.md#oncmdxxxmsg-clientmeta-client) in its `roomClass`, for example `onCmdReady` for `ready`. This also works with ordinary rooms. Depending on `syncMode`, the handler's return value is automatically broadcast as a room message and received with `room.onMessage`. This method does not return a response Promise. Server refusals are reported through the `ws:error` event on the `WSClientRoom` instance.
 
 **Parameters:**
 - `name` (string): The room name.

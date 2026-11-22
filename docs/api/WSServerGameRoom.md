@@ -355,7 +355,7 @@ class MyGameRoom extends WSServerGameRoom {
 
 ### `onCmdXxx` (Command Methods)
 
-Handle client commands by creating methods with the prefix `onCmd` followed by the command name (first letter capitalized).
+Handle client commands by creating methods with the prefix `onCmd` followed by the command name (first letter capitalized). This command routing is inherited from the room system and also works with ordinary `WSServerRoom` classes. See [room command handlers](./WSServerRoomManager.md#oncmdxxxmsg-clientmeta-client) for naming, parameters, errors, and return-value behavior. In game rooms using `patch` mode, handlers typically update state for the next patch instead of returning a message to broadcast.
 
 **Parameters:**
 - `msg` (any): Command data from client

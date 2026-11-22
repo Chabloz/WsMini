@@ -27,6 +27,7 @@ The `WSServerRoomManager` class extends [`WSServerPubSub`](./WSServerPubSub.md) 
   - [onCreate](#oncreate)
   - [onJoin](#onjoin)
   - [onMsg](#onmsg)
+  - [onCmdXxx](#oncmdxxxmsg-clientmeta-client)
   - [onLeave](#onleave)
   - [onDispose](#ondispose)
   - [onSendClient](#onsendclient)
@@ -455,6 +456,62 @@ class CustomRoom extends WSServerRoom {
     };
   }
 }
+```
+
+### `onCmdXxx(msg, clientMeta, client)`
+
+Handles a command sent by a client with [`room.sendCmd(cmd, data)`](./WSClientRoom.md#sendcmdcmd-data). This mechanism is available in ordinary `WSServerRoom` classes as well as `WSServerGameRoom`.
+
+Define the handler as a method in the class passed to `roomClass`. WsMini looks up the method by name, with no separate registration step. It capitalizes the first letter of `cmd` and adds the `onCmd` prefix. For example, `em` calls `onCmdEm` and `move` calls `onCmdMove`. Command names must match `/^[a-zA-Z][a-zA-Z0-9_]*$/`. The client must belong to the room.
+
+**Parameters:**
+- `msg` (any): Command data supplied by the client
+- `clientMeta` (object): [Client metadata](./WSServer.md#createclientmetadataclient-custommetadata)
+- `client` (WebSocket): The sender's connection
+
+**Return value and errors:**
+- Handlers are synchronous. Their return value is processed according to `syncMode`, just like the return value of `onMsg`.
+- In `immediate` mode (the default for ordinary rooms), the return value is broadcast to all room members, including the sender.
+- In `immediate-other` mode, it is broadcast to the other members.
+- In `patch` mode, the return value is not automatically broadcast. Game rooms generally update their state and send updates through their [patch cycle](./WSServerGameRoom.md#onpatchdeltatime-elapsedtime).
+- Automatically broadcast values arrive through `room.onMessage`, not `room.onCmd`. The latter receives explicit server commands sent with methods such as `sendRoomNameCmd` or `broadcastRoomNameCmd`.
+- An unknown handler or a thrown `WSServerError` produces a `ws:error` event on the client. Other thrown errors are logged and reported as `Server error`. `room.sendCmd` does not return a response Promise.
+
+Returning `undefined` does not suppress the automatic broadcast in immediate modes. For an operation that needs a private response, use an [RPC](./WSServerPubSub.md#addrpcname-callback) and an explicit targeted send where needed.
+
+**Server example:**
+```javascript
+import { WSServerRoomManager, WSServerRoom, WSServerError } from 'wsmini';
+
+class ChatRoom extends WSServerRoom {
+  onCmdEm(msg, clientMeta, client) {
+    if (typeof msg?.text !== 'string' || msg.text.length > 500) {
+      throw new WSServerError('Invalid message');
+    }
+    return {
+      type: 'emote',
+      user: clientMeta.id,
+      text: msg.text,
+      time: Date.now()
+    };
+  }
+}
+
+const wsServer = new WSServerRoomManager({
+  port: 8889,
+  roomClass: ChatRoom,
+  usersCanCreateRoom: false,
+  autoDeleteEmptyRoom: false
+});
+wsServer.createRoom('chat');
+wsServer.start();
+```
+
+**Client example** (after connecting a `WSClientRoom`):
+```javascript
+const room = await wsClient.roomJoin('chat');
+room.onMessage(message => console.log('Room message:', message));
+room.sendCmd('em', { text: 'waves hello' });
 ```
 
 ### `onLeave(clientMeta, client)`
