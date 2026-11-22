@@ -2,6 +2,8 @@
 
 The `WSServerRoomManager` class extends [`WSServerPubSub`](./WSServerPubSub.md) to provide room-based functionality for WebSocket communication. It allows clients to create, join, leave, and manage rooms with dedicated messaging and command systems. It's better to read the documentation for [`WSServerPubSub`](./WSServerPubSub.md) first to understand the PubSub and RPC features. You will find a complete example of a room-based WebSocket server in the [examples directory](../examples/index.md). It demonstrates how to create rooms, manage clients, and handle messages with custom hooks.
 
+Room management uses internal RPCs such as `__room-join` and `__room-leave`, and PubSub channels such as `__room-list`, `__room-<roomName>` and `__room-<roomName>-clients`. The `__room-` prefix is reserved: do not use it for application RPC or channel names. Use the public room APIs instead of calling or managing these internal names directly. See [Reserved prefixes](../index.md#reserved-prefixes).
+
 ## Table of Contents
 
 - [Constructor](#constructor)

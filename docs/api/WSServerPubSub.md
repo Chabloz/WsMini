@@ -81,6 +81,8 @@ const wsServer = new WSServerPubSub({
 
 Adds a new channel to the server. Channels allow clients to subscribe and publish messages.
 
+The `__room-` prefix is reserved for internal room channels. Choose application channel names without this prefix. See [Reserved prefixes](../index.md#reserved-prefixes).
+
 **Parameters:**
 - `name` (string): The channel name
 - `options` (object, optional): Channel configuration options
@@ -291,6 +293,8 @@ setInterval(() => {
 ### `addRpc(name, callback)`
 
 Adds a Remote Procedure Call (RPC) endpoint that clients can invoke.
+
+The `__room-` prefix is reserved for internal room RPCs. Choose application RPC names without this prefix. See [Reserved prefixes](../index.md#reserved-prefixes).
 
 **Parameters:**
 - `name` (string): The RPC name
